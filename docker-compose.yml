@@ -1,0 +1,36 @@
+services:
+  database:
+    image: postgres:latest
+    container_name: ecg-database-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ecg-backend
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgres://postgres:mysecretpassword@localhost:5432/postgres
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ecg-frontend
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+volumes:
+  db_data:
