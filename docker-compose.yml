@@ -17,7 +17,7 @@ services:
     depends_on:
       - database
     environment:
-      - DATABASE_URL=postgres://postgres:mysecretpassword@localhost:5432/postgres
+      - DATABASE_URL=postgres://postgres:mysecretpassword@database:5432/postgres
     ports:
       - "8000:8000"
 

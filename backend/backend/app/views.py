@@ -24,7 +24,7 @@ def hello(request):
 @csrf_exempt
 def get_item1(request):
     try:
-        item = Item.objects.get(id=1)  # Use static ID for simplicity
+        item = Item.objects.create(name='Item 1', description='This is item 1.')
         item_data = {
             'name': item.name,
             'description': item.description,
