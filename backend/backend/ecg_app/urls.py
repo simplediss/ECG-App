@@ -22,7 +22,6 @@ router.register(r'question-attempts', views.QuestionAttemptViewSet, basename='qu
 urlpatterns = [
     path('api/', include(router.urls)),
     path('', views.home, name='home'),
-    path('item1/', views.get_item1, name='item1'),  # TEMP, for testing frontend integration
     path('samples/', views.view_ecg_samples, name='list_samples'),
     path('snomed/', views.view_ecg_snomed, name='view_ecg_snomed'),
     path('samples-snomed/', views.view_ecg_samples_snomed, name='view_ecg_samples_snomed'),

@@ -1,10 +1,7 @@
 from django.core.paginator import Paginator
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
-from django.http import JsonResponse
 from rest_framework import viewsets
 
-from .models import Item
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
     User, Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, UserStatistics
@@ -17,21 +14,6 @@ from .serializers import (
 )
 
 ITEMS_PER_PAGE = 50
-
-
-# ---------------------------------------- [Temp - remove] ----------------------------------------
-
-@csrf_exempt
-def get_item1(request):
-    try:
-        item = Item.objects.create(name='Item 1', description='This is item 1.')
-        item_data = {
-            'name': item.name,
-            'description': item.description,
-        }
-        return JsonResponse(item_data, safe=False)
-    except Item.DoesNotExist:
-        return JsonResponse({'error': 'Item with ID 1 not found.'}, status=404)
     
 # ---------------------------------------- [Home templates View] ----------------------------------------
 
