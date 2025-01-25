@@ -1,13 +1,6 @@
 from rest_framework import serializers
-from .models import Item
 from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
 from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, UserStatistics
-
-
-class ItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Item
-        fields = '__all__'
 
     
 class EcgSamplesSerializer(serializers.ModelSerializer):
