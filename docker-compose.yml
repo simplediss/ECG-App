@@ -11,20 +11,27 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
+    container_name: ecg-backend
     build:
       context: ./backend
-    container_name: ecg-backend
     depends_on:
       - database
     environment:
       - DATABASE_URL=postgres://postgres:mysecretpassword@database:5432/postgres
+      - DATASET_SAMPLES_PATH=/dataset/samples_dev  # directory with ECG samples
+      - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./dataset:/dataset
+    stdin_open: true
+    tty: true
 
   frontend:
+    container_name: ecg-frontend
     build:
       context: ./frontend
-    container_name: ecg-frontend
     environment:
       - REACT_APP_BACKEND_URL=http://localhost:8000
     ports:

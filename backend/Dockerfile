@@ -11,9 +11,7 @@ WORKDIR /app
 # Install dependencies
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy project files
-COPY . /app/
+RUN rm requirements.txt
 
 # Set entrypoint
-CMD ["sh", "-c", "cd backend && python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+ENTRYPOINT ["sh", "-c", "./start_backend.sh"]
