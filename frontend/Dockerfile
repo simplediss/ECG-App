@@ -6,8 +6,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json /app/
-RUN npm install --force --loglevel verbose
-RUN npm install axios
+RUN npm install --loglevel error
 
 # Copy project files
 COPY . /app/
