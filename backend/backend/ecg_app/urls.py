@@ -28,4 +28,7 @@ urlpatterns = [
     path('users/', views.view_users, name='users'),
     path('quizzes/', views.view_quizzes, name='quizzes'),
     path('quiz-attempts/', views.view_quiz_attempts, name='quiz-attempts'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('user-status/', views.user_status_view, name='user_status'),
 ]
