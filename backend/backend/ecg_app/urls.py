@@ -22,6 +22,7 @@ router.register(r'question-attempts', views.QuestionAttemptViewSet, basename='qu
 urlpatterns = [
     path('api/', include(router.urls)),
     # Authentication API endpoints
+    path('api/auth/csrf/', views.api_csrf, name='api_csrf'),
     path('api/auth/login/', views.api_login, name='api_login'),
     path('api/auth/logout/', views.api_logout, name='api_logout'),
     path('api/auth/user-status/', views.api_user_status, name='api_user_status'),
