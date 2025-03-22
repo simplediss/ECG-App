@@ -17,7 +17,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('Admin user created successfully'))
 
         # Add users
-        for i in range(5):
+        for i in range(2):
             user, created = User.objects.get_or_create(
                 username=f"user{i+1}",
                 email=f"user{i+1}@example.com",
