@@ -23,6 +23,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'User: {user.username}'))
                 self.stdout.write(f'  ID: {user.id}')
                 self.stdout.write(f'  Email: {user.email}')
+                self.stdout.write(f'  Password hash: {user.password}')
                 self.stdout.write(f'  First Name: {user.first_name or "Not set"}')
                 self.stdout.write(f'  Last Name: {user.last_name or "Not set"}')
                 self.stdout.write(f'  Date of Birth: {profile.date_of_birth or "Not set"}')
