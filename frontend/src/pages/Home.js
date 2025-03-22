@@ -23,9 +23,19 @@ const Home = () => {
     <div className="home-container">
       <div className="header">
         <h1>Welcome, {user.username}!</h1>
-        <button onClick={handleLogout} className="logout-button">
-          Logout
-        </button>
+        <div className="header-buttons">
+          {user.role === 'admin' && (
+            <button 
+              onClick={() => navigate('/admin')} 
+              className="admin-button"
+            >
+              Admin Dashboard
+            </button>
+          )}
+          <button onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+        </div>
       </div>
       <div className="content">
         <p>You are successfully logged in.</p>

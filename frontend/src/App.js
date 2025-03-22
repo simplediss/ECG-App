@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -14,6 +15,20 @@ const PrivateRoute = ({ children }) => {
   }
   
   return user ? children : <Navigate to="/login" />;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/home" />;
+  }
+  
+  return children;
 };
 
 const App = () => {
@@ -30,6 +45,14 @@ const App = () => {
                 <PrivateRoute>
                   <Home />
                 </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
               }
             />
             <Route path="/" element={<Navigate to="/home" />} />

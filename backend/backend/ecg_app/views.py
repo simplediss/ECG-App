@@ -161,6 +161,8 @@ def view_quiz_attempts(request):
     return render(request, 'view_quiz_attempts.html', {'page_obj': page_obj})
 
 
+# ---------------------------------------- [Authentication API views] ----------------------------------------
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
@@ -178,7 +180,8 @@ def api_login(request):
                 'user': {
                     'id': user.id,
                     'username': user.username,
-                    'email': user.email
+                    'email': user.email,
+                    'role': 'admin' if user.is_superuser else 'user'
                 }
             })
         else:
@@ -202,7 +205,8 @@ def api_user_status(request):
         'user': {
             'id': user.id,
             'username': user.username,
-            'email': user.email
+            'email': user.email,
+            'role': 'admin' if user.is_superuser else 'user'
         }
     })
 
