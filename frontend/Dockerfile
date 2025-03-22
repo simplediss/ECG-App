@@ -8,14 +8,8 @@ WORKDIR /app
 COPY package*.json /app/
 RUN npm install --loglevel error
 
-# Copy project files
-COPY . /app/
-
-# Build the app
-RUN npm run build
-
 # Expose application port
 EXPOSE 3000
 
 # Start the app
-CMD ["npm", "start"]
+CMD ["npm", "run", "start-watch"]
