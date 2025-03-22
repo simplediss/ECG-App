@@ -10,17 +10,25 @@ class Command(BaseCommand):
     help = "Populate the database with dummy values for all models"
 
     def handle(self, *args, **kwargs):
+
+        # Create admin user
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+            self.stdout.write(self.style.SUCCESS('Admin user created successfully'))
+
         # Add users
         for i in range(5):
             user, created = User.objects.get_or_create(
                 username=f"user{i+1}",
                 email=f"user{i+1}@example.com",
+                first_name=f"User {i+1}",
+                last_name=f"Last Name {i+1}",
                 is_staff=random.choice([True, False]),
             )
             if created:
                 user.set_password("password")
                 user.save()
-                Profile.objects.get_or_create(user=user, bio=f"Bio for user{i+1}")
+                Profile.objects.get_or_create(user=user)
 
         # Add quizzes
         for i in range(3):

@@ -39,7 +39,7 @@ class EcgSamplesSnomedSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = ['id', 'user', 'date_of_birth', 'gender']
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -139,21 +139,6 @@ class RegistrationSerializer(serializers.Serializer):
             'invalid_choice': 'Please select a valid gender option.',
         }
     )
-    bio = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        max_length=500,
-        error_messages={
-            'max_length': 'Bio cannot exceed 500 characters.',
-        }
-    )
-    avatar = serializers.ImageField(
-        required=False,
-        allow_null=True,
-        error_messages={
-            'invalid_image': 'Please upload a valid image file.',
-        }
-    )
 
     def validate(self, data):
         # Check if username already exists
@@ -185,9 +170,7 @@ class RegistrationSerializer(serializers.Serializer):
             profile = Profile.objects.create(
                 user=user,
                 date_of_birth=validated_data.get('date_of_birth'),
-                gender=validated_data.get('gender'),
-                bio=validated_data.get('bio'),
-                avatar=validated_data.get('avatar')
+                gender=validated_data.get('gender')
             )
 
             # Create UserStatistics object

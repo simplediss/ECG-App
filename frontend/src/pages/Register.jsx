@@ -13,19 +13,13 @@ const Register = () => {
     first_name: '',
     last_name: '',
     date_of_birth: '',
-    gender: '',
-    bio: '',
-    avatar: null
+    gender: ''
   });
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === 'avatar') {
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -38,37 +32,18 @@ const Register = () => {
     }
 
     try {
-      // Create FormData object for file upload
       const userData = new FormData();
       
       // Add user fields
       userData.append('username', formData.username);
       userData.append('password', formData.password);
       userData.append('email', formData.email);
-      
-      // Add profile fields
       userData.append('first_name', formData.first_name);
       userData.append('last_name', formData.last_name);
+      
+      // Add profile fields
       userData.append('date_of_birth', formData.date_of_birth);
       userData.append('gender', formData.gender);
-      userData.append('bio', formData.bio);
-      
-      // Add avatar if selected
-      if (formData.avatar) {
-        userData.append('avatar', formData.avatar);
-      }
-
-      // Log the data being sent
-      console.log('Sending registration data:', {
-        username: formData.username,
-        email: formData.email,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        date_of_birth: formData.date_of_birth,
-        gender: formData.gender,
-        bio: formData.bio,
-        has_avatar: !!formData.avatar
-      });
 
       const response = await axios.post('http://localhost:8000/api/register/', userData, {
         headers: {
@@ -176,26 +151,6 @@ const Register = () => {
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
-          </div>
-
-          <div className="form-group">
-            <label>Bio</label>
-            <textarea
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              rows="4"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Profile Picture</label>
-            <input
-              type="file"
-              name="avatar"
-              onChange={handleChange}
-              accept="image/*"
-            />
           </div>
 
           <button type="submit" className="register-button">
