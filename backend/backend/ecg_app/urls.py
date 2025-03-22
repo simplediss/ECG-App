@@ -21,6 +21,11 @@ router.register(r'question-attempts', views.QuestionAttemptViewSet, basename='qu
 
 urlpatterns = [
     path('api/', include(router.urls)),
+    # Authentication API endpoints
+    path('api/auth/login/', views.api_login, name='api_login'),
+    path('api/auth/logout/', views.api_logout, name='api_logout'),
+    path('api/auth/user-status/', views.api_user_status, name='api_user_status'),
+    # Template views
     path('', views.home, name='home'),
     path('samples/', views.view_ecg_samples, name='list_samples'),
     path('snomed/', views.view_ecg_snomed, name='view_ecg_snomed'),
