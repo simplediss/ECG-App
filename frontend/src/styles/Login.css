@@ -62,4 +62,20 @@ button:hover {
   padding: 0.5rem;
   background-color: #f8d7da;
   border-radius: 4px;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #666;
+}
+
+.register-link a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 } 

@@ -50,6 +50,9 @@ const Login = () => {
           </div>
           <button type="submit">Login</button>
         </form>
+        <p className="register-link">
+          Don't have an account? <a href="/register">Register here</a>
+        </p>
       </div>
     </div>
   );

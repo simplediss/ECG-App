@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/auth/login/', views.api_login, name='api_login'),
     path('api/auth/logout/', views.api_logout, name='api_logout'),
     path('api/auth/user-status/', views.api_user_status, name='api_user_status'),
+    path('api/register/', views.api_register, name='api_register'),
     # Template views
     path('', views.home, name='home'),
     path('samples/', views.view_ecg_samples, name='list_samples'),

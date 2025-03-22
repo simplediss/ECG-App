@@ -19,7 +19,7 @@ from .serializers import (
     EcgSamplesDocLabelsSerializer, EcgSamplesSnomedSerializer,
     ProfileSerializer, QuizSerializer, QuestionSerializer, ChoiceSerializer,
     QuizAttemptSerializer, QuestionAttemptSerializer, UserStatisticsSerializer,
-    LoginSerializer
+    LoginSerializer, RegistrationSerializer
 )
 
 ITEMS_PER_PAGE = 50
@@ -230,4 +230,33 @@ def api_user_status(request):
 @ensure_csrf_cookie
 def api_csrf(request):
     return Response({'csrfToken': get_token(request)})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def api_register(request):
+    print("Received registration data:", request.data)  # Debug print
+    serializer = RegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        try:
+            user = serializer.save()
+            return Response({
+                'message': 'Registration successful',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Registration error:", str(e))  # Debug print
+            return Response({
+                'message': 'Registration failed',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+    print("Validation errors:", serializer.errors)  # Debug print
+    return Response({
+        'message': 'Invalid data',
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
     
