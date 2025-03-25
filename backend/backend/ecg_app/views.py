@@ -1,6 +1,14 @@
 from django.core.paginator import Paginator
-from django.shortcuts import render
-from rest_framework import viewsets
+from django.shortcuts import render, redirect
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.middleware.csrf import get_token
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -10,7 +18,8 @@ from .serializers import (
     EcgSamplesSerializer, EcgDocLabelsSerializer, EcgSnomedSerializer,
     EcgSamplesDocLabelsSerializer, EcgSamplesSnomedSerializer,
     ProfileSerializer, QuizSerializer, QuestionSerializer, ChoiceSerializer,
-    QuizAttemptSerializer, QuestionAttemptSerializer, UserStatisticsSerializer
+    QuizAttemptSerializer, QuestionAttemptSerializer, UserStatisticsSerializer,
+    LoginSerializer, RegistrationSerializer
 )
 
 ITEMS_PER_PAGE = 50
@@ -150,4 +159,89 @@ def view_quiz_attempts(request):
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'view_quiz_attempts.html', {'page_obj': page_obj})
+
+
+# ---------------------------------------- [Authentication API views] ----------------------------------------
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def api_login(request):
+    serializer = LoginSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return Response({
+                'message': 'Login successful',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'role': 'admin' if user.is_superuser else 'user'
+                }
+            })
+        else:
+            return Response(
+                {'error': 'Invalid credentials'}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_logout(request):
+    logout(request)
+    return Response({'message': 'Logout successful'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_user_status(request):
+    user = request.user
+    return Response({
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': 'admin' if user.is_superuser else 'user'
+        }
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def api_csrf(request):
+    return Response({'csrfToken': get_token(request)})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@ensure_csrf_cookie
+def api_register(request):
+    print("Received registration data:", request.data)  # Debug print
+    serializer = RegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        try:
+            user = serializer.save()
+            return Response({
+                'message': 'Registration successful',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Registration error:", str(e))  # Debug print
+            return Response({
+                'message': 'Registration failed',
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+    print("Validation errors:", serializer.errors)  # Debug print
+    return Response({
+        'message': 'Invalid data',
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
     
