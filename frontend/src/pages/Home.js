@@ -32,6 +32,9 @@ const Home = () => {
               Admin Dashboard
             </button>
           )}
+          <button onClick={() => navigate('/quiz')} className="quiz-button">
+            Take Quiz
+          </button>
           <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
@@ -39,6 +42,12 @@ const Home = () => {
       </div>
       <div className="content">
         <p>You are successfully logged in.</p>
+        <div className="action-cards">
+          <div className="card" onClick={() => navigate('/quiz')}>
+            <h3>ECG Quiz</h3>
+            <p>Test your ECG interpretation skills with our interactive quiz!</p>
+          </div>
+        </div>
       </div>
     </div>
   );

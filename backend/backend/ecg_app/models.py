@@ -110,13 +110,13 @@ class Question(models.Model):
     
 
 class Choice(models.Model):
-    """Represents the possible answers for a question."""
+    """Represents a possible answer to a question."""
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')
     text = models.CharField(max_length=255)
-    is_correct = models.BooleanField(default=False)  # True if this choice is the correct answer
+    is_correct = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Choice for Question {self.question.id}: {self.text}"
+        return f"Choice for {self.question}: {self.text[:30]}..."
 
 
 class QuizAttempt(models.Model):

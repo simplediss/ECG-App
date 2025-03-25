@@ -42,22 +42,26 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'date_of_birth', 'gender']
 
 
-class QuizSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quiz
-        fields = '__all__'
-
-
-class QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = '__all__'
-
-
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
-        fields = '__all__'
+        fields = ['id', 'text']
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'choices']
+
+
+class QuizSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Quiz
+        fields = ['id', 'title', 'description', 'created_at', 'questions']
 
 
 class QuizAttemptSerializer(serializers.ModelSerializer):

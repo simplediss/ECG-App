@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import login, logout, authenticate
@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
+from django.utils import timezone
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -76,10 +77,12 @@ class UserStatisticsViewSet(viewsets.ReadOnlyModelViewSet):  # Read-only ViewSet
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
+    permission_classes = [IsAuthenticated]
 
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+    permission_classes = [IsAuthenticated]
 
 class ChoiceViewSet(viewsets.ModelViewSet):
     queryset = Choice.objects.all()
@@ -88,10 +91,76 @@ class ChoiceViewSet(viewsets.ModelViewSet):
 class QuizAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuizAttempt.objects.all()
     serializer_class = QuizAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return QuizAttempt.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        # Get the quiz
+        quiz_id = request.data.get('quiz')
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+        except Quiz.DoesNotExist:
+            return Response({'error': 'Quiz not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create quiz attempt
+        quiz_attempt = QuizAttempt.objects.create(
+            user=request.user,
+            quiz=quiz,
+            completed_at=timezone.now()
+        )
+
+        # Process answers
+        answers = request.data.get('answers', [])
+        correct_answers = 0
+        total_questions = len(answers)
+
+        for answer in answers:
+            question_id = answer.get('question')
+            choice_id = answer.get('selected_choice')
+
+            try:
+                question = Question.objects.get(id=question_id, quiz=quiz)
+                choice = Choice.objects.get(id=choice_id, question=question)
+                
+                is_correct = choice.is_correct
+                if is_correct:
+                    correct_answers += 1
+
+                QuestionAttempt.objects.create(
+                    quiz_attempt=quiz_attempt,
+                    question=question,
+                    selected_choice=choice,
+                    is_correct=is_correct
+                )
+            except (Question.DoesNotExist, Choice.DoesNotExist):
+                continue
+
+        # Update user statistics
+        user_stats = UserStatistics.objects.get(user=request.user)
+        user_stats.total_quizzes_taken += 1
+        user_stats.total_correct_answers += correct_answers
+        user_stats.total_questions_answered += total_questions
+        user_stats.save()
+
+        # Calculate score
+        score = (correct_answers / total_questions * 100) if total_questions > 0 else 0
+
+        return Response({
+            'quiz_attempt_id': quiz_attempt.id,
+            'score': score,
+            'correct_answers': correct_answers,
+            'total_questions': total_questions
+        }, status=status.HTTP_201_CREATED)
 
 class QuestionAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuestionAttempt.objects.all()
     serializer_class = QuestionAttemptSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return QuestionAttempt.objects.filter(quiz_attempt__user=self.request.user)
 
 # ---------------------------------------- [ECG Data templates views] ----------------------------------------
 

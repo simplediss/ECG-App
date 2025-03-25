@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
+import Quiz from './components/Quiz';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -44,6 +45,14 @@ const App = () => {
               element={
                 <PrivateRoute>
                   <Home />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/quiz"
+              element={
+                <PrivateRoute>
+                  <Quiz />
                 </PrivateRoute>
               }
             />
