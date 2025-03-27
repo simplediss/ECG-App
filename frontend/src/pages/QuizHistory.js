@@ -17,7 +17,13 @@ const QuizHistory = () => {
     try {
       setIsLoading(true);
       const data = await fetchQuizHistory();
-      setQuizHistory(data);
+      // Sort quiz attempts by completed_at date in descending order (newest to oldest)
+      const sortedData = [...data].sort((a, b) => {
+        const dateA = a.completed_at ? new Date(a.completed_at) : new Date(0);
+        const dateB = b.completed_at ? new Date(b.completed_at) : new Date(0);
+        return dateB - dateA;
+      });
+      setQuizHistory(sortedData);
       setIsLoading(false);
     } catch (err) {
       setError('Failed to load quiz history. Please try again later.');
