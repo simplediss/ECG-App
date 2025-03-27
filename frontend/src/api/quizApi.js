@@ -28,4 +28,17 @@ export const fetchQuizHistory = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+// Check individual answer
+export const checkAnswer = async (questionId, choiceId) => {
+  try {
+    const response = await axiosInstance.post('check-answer/', {
+      question_id: questionId,
+      choice_id: choiceId
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }; 

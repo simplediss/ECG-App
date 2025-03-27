@@ -11,6 +11,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -316,4 +317,27 @@ def api_register(request):
         'message': 'Invalid data',
         'errors': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class CheckAnswerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        question_id = request.data.get('question_id')
+        choice_id = request.data.get('choice_id')
+
+        try:
+            question = Question.objects.get(id=question_id)
+            choice = Choice.objects.get(id=choice_id, question=question)
+            
+            is_correct = choice.is_correct
+            correct_choice = Choice.objects.get(question=question, is_correct=True)
+
+            return Response({
+                'is_correct': is_correct,
+                'correct_choice_id': correct_choice.id,
+                'correct_choice_text': correct_choice.text
+            })
+        except (Question.DoesNotExist, Choice.DoesNotExist):
+            return Response({'error': 'Invalid question or choice'}, status=status.HTTP_404_NOT_FOUND)
     

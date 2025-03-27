@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchQuizQuestions, submitQuizAnswers } from '../api/quizApi';
+import { fetchQuizQuestions, submitQuizAnswers, checkAnswer } from '../api/quizApi';
 import '../styles/Quiz.css';
 
 const Quiz = () => {
@@ -14,6 +14,9 @@ const Quiz = () => {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(null);
   const [randomizedChoices, setRandomizedChoices] = useState([]);
+  const [currentAnswer, setCurrentAnswer] = useState(null);
+  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
+  const [correctChoiceId, setCorrectChoiceId] = useState(null);
 
   // Function to shuffle array
   const shuffleArray = (array) => {
@@ -55,18 +58,47 @@ const Quiz = () => {
     setAnswers({});
     setQuizSubmitted(false);
     setScore(null);
+    setCurrentAnswer(null);
+    setIsAnswerChecked(false);
+    setCorrectChoiceId(null);
+    if (quiz) {
+      setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
+    }
   };
 
   const handleAnswerSelect = (questionId, selectedChoice) => {
+    if (isAnswerChecked) return; // Prevent changing answer after checking
+    setCurrentAnswer(selectedChoice);
     setAnswers(prev => ({
       ...prev,
       [questionId]: selectedChoice
     }));
   };
 
+  const handleCheckAnswer = async () => {
+    if (!currentAnswer) return;
+    
+    try {
+      const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
+      const result = await checkAnswer(currentQuestion.id, currentAnswer);
+      setIsAnswerChecked(true);
+      setCorrectChoiceId(result.correct_choice_id);
+    } catch (err) {
+      setError('Failed to check answer. Please try again.');
+    }
+  };
+
   const handleNext = () => {
+    if (!isAnswerChecked) return;
+    
     if (currentQuestionIndex < selectedQuiz.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentAnswer(null);
+      setIsAnswerChecked(false);
+      setCorrectChoiceId(null);
+    } else {
+      // This is the last question, submit the quiz
+      handleSubmit();
     }
   };
 
@@ -78,9 +110,15 @@ const Quiz = () => {
 
   const handleSubmit = async () => {
     try {
+      // Add the current answer to the answers object before submitting
+      const finalAnswers = {
+        ...answers,
+        [selectedQuiz.questions[currentQuestionIndex].id]: currentAnswer
+      };
+
       const result = await submitQuizAnswers({
         quiz: selectedQuiz.id,
-        answers: Object.entries(answers).map(([questionId, choiceId]) => ({
+        answers: Object.entries(finalAnswers).map(([questionId, choiceId]) => ({
           question: parseInt(questionId),
           selected_choice: choiceId
         }))
@@ -142,7 +180,57 @@ const Quiz = () => {
     );
   }
 
-  const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
+  const renderQuestion = () => {
+    const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
+
+    return (
+      <div className="question-container">
+        <h3>{currentQuestion.question_text}</h3>
+        
+        <div className="options-container">
+          {randomizedChoices.map((choice) => (
+            <button
+              key={choice.id}
+              className={`option-button ${
+                currentAnswer === choice.id ? 'selected' : ''
+              } ${
+                isAnswerChecked
+                  ? choice.id === correctChoiceId
+                    ? 'correct'
+                    : currentAnswer === choice.id && choice.id !== correctChoiceId
+                    ? 'incorrect'
+                    : ''
+                  : ''
+              }`}
+              onClick={() => handleAnswerSelect(currentQuestion.id, choice.id)}
+              disabled={isAnswerChecked}
+            >
+              {choice.text}
+            </button>
+          ))}
+        </div>
+
+        <div className="question-actions">
+          {!isAnswerChecked ? (
+            <button
+              onClick={handleCheckAnswer}
+              disabled={!currentAnswer}
+              className="check-button"
+            >
+              Check Answer
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              className="next-button"
+            >
+              {currentQuestionIndex === selectedQuiz.questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="quiz-container">
@@ -157,51 +245,7 @@ const Quiz = () => {
         Question {currentQuestionIndex + 1} of {selectedQuiz.questions.length}
       </div>
       
-      <div className="question-container">
-        <h3>{currentQuestion.question_text}</h3>
-        
-        <div className="options-container">
-          {randomizedChoices.map((choice) => (
-            <button
-              key={choice.id}
-              className={`option-button ${
-                answers[currentQuestion.id] === choice.id ? 'selected' : ''
-              }`}
-              onClick={() => handleAnswerSelect(currentQuestion.id, choice.id)}
-            >
-              {choice.text}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="navigation-buttons">
-        <button
-          onClick={handlePrevious}
-          disabled={currentQuestionIndex === 0}
-          className="nav-button"
-        >
-          Previous
-        </button>
-        
-        {currentQuestionIndex === selectedQuiz.questions.length - 1 ? (
-          <button
-            onClick={handleSubmit}
-            disabled={Object.keys(answers).length !== selectedQuiz.questions.length}
-            className="submit-button"
-          >
-            Submit Quiz
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            disabled={currentQuestionIndex === selectedQuiz.questions.length - 1}
-            className="nav-button"
-          >
-            Next
-          </button>
-        )}
-      </div>
+      {renderQuestion()}
     </div>
   );
 };

@@ -27,7 +27,9 @@ urlpatterns = [
     path('api/auth/logout/', views.api_logout, name='api_logout'),
     path('api/auth/user-status/', views.api_user_status, name='api_user_status'),
     path('api/register/', views.api_register, name='api_register'),
-    # Template views
+    # API endpoints
+    path('api/check-answer/', views.CheckAnswerView.as_view(), name='check-answer'),
+    # Template views (for debug purposes)
     path('', views.home, name='home'),
     path('samples/', views.view_ecg_samples, name='list_samples'),
     path('snomed/', views.view_ecg_snomed, name='view_ecg_snomed'),
