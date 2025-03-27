@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
 import Quiz from './components/Quiz';
+import QuizHistory from './pages/QuizHistory';
 import Navbar from './components/Navbar';
 import './App.css';
 
@@ -79,7 +80,7 @@ const AppContent = () => {
           path="/quiz-history"
           element={
             <PrivateRoute>
-              <div>Quiz History Page (Coming Soon)</div>
+              <QuizHistory />
             </PrivateRoute>
           }
         />

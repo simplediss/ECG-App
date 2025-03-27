@@ -65,9 +65,28 @@ class QuizSerializer(serializers.ModelSerializer):
 
 
 class QuizAttemptSerializer(serializers.ModelSerializer):
+    quiz = QuizSerializer()  # Nested serializer for quiz details
+    score = serializers.SerializerMethodField()
+    correct_answers = serializers.SerializerMethodField()
+    total_questions = serializers.SerializerMethodField()
+
     class Meta:
         model = QuizAttempt
-        fields = '__all__'
+        fields = ['id', 'quiz', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions']
+
+    def get_score(self, obj):
+        question_attempts = obj.question_attempts.all()
+        total = question_attempts.count()
+        if total == 0:
+            return 0
+        correct = question_attempts.filter(is_correct=True).count()
+        return (correct / total) * 100
+
+    def get_correct_answers(self, obj):
+        return obj.question_attempts.filter(is_correct=True).count()
+
+    def get_total_questions(self, obj):
+        return obj.question_attempts.count()
 
 
 class QuestionAttemptSerializer(serializers.ModelSerializer):

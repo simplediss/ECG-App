@@ -36,6 +36,10 @@ const Home = () => {
             <h3>ECG Quiz</h3>
             <p>Test your ECG interpretation skills with our interactive quiz!</p>
           </div>
+          <div className="card" onClick={() => navigate('/quiz-history')}>
+            <h3>Quiz History</h3>
+            <p>View your past quiz attempts and track your progress.</p>
+          </div>
         </div>
       </div>
     </div>
