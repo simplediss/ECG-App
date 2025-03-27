@@ -13,10 +13,13 @@ const Quiz = () => {
   const [error, setError] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(null);
+  const [quizResult, setQuizResult] = useState(null);
   const [randomizedChoices, setRandomizedChoices] = useState([]);
   const [currentAnswer, setCurrentAnswer] = useState(null);
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
   const [correctChoiceId, setCorrectChoiceId] = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [duration, setDuration] = useState(null);
 
   // Function to shuffle array
   const shuffleArray = (array) => {
@@ -58,9 +61,12 @@ const Quiz = () => {
     setAnswers({});
     setQuizSubmitted(false);
     setScore(null);
+    setQuizResult(null);
     setCurrentAnswer(null);
     setIsAnswerChecked(false);
     setCorrectChoiceId(null);
+    setStartTime(quiz ? Date.now() : null);
+    setDuration(null);
     if (quiz) {
       setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
     }
@@ -110,7 +116,6 @@ const Quiz = () => {
 
   const handleSubmit = async () => {
     try {
-      // Add the current answer to the answers object before submitting
       const finalAnswers = {
         ...answers,
         [selectedQuiz.questions[currentQuestionIndex].id]: currentAnswer
@@ -123,7 +128,14 @@ const Quiz = () => {
           selected_choice: choiceId
         }))
       });
+      
+      // Calculate duration
+      const endTime = Date.now();
+      const quizDuration = Math.floor((endTime - startTime) / 1000); // Convert to seconds
+      setDuration(quizDuration);
+      
       setScore(result.score);
+      setQuizResult(result);
       setQuizSubmitted(true);
     } catch (err) {
       setError('Failed to submit quiz. Please try again.');
@@ -161,20 +173,45 @@ const Quiz = () => {
   }
 
   if (quizSubmitted) {
+    // Format duration into minutes and seconds
+    const formatDuration = (seconds) => {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}m ${remainingSeconds}s`;
+    };
+
     return (
       <div className="quiz-container">
-        <h2>Quiz Completed!</h2>
-        <p>Your score: {score}%</p>
-        <div className="quiz-actions">
-          <button onClick={() => navigate('/home')} className="primary-button">
-            Back to Home
-          </button>
-          <button onClick={() => handleQuizSelect(null)} className="secondary-button">
-            Back to Quiz List
-          </button>
-          <button onClick={() => handleQuizSelect(selectedQuiz)} className="secondary-button">
-            Retake Quiz
-          </button>
+        <div className="quiz-summary">
+          <h2>Quiz Summary</h2>
+          <div className="summary-stats">
+            <div className="stat-card">
+              <h3>Overall Score</h3>
+              <div className="score-circle">
+                <span className="score-value">{Math.round(score)}%</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <h3>Performance</h3>
+              <div className="performance-stats">
+                <p>Correct Answers: {quizResult?.correct_answers || 0}</p>
+                <p>Total Questions: {quizResult?.total_questions || 0}</p>
+                <p>Time Taken: {formatDuration(duration)}</p>
+                <p>Accuracy: {quizResult ? ((quizResult.correct_answers / quizResult.total_questions) * 100).toFixed(1) : 0}%</p>
+              </div>
+            </div>
+          </div>
+          <div className="quiz-actions">
+            <button onClick={() => navigate('/home')} className="primary-button">
+              Back to Home
+            </button>
+            <button onClick={() => handleQuizSelect(null)} className="secondary-button">
+              Back to Quiz List
+            </button>
+            <button onClick={() => handleQuizSelect(selectedQuiz)} className="secondary-button">
+              Retake Quiz
+            </button>
+          </div>
         </div>
       </div>
     );
