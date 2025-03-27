@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -88,6 +89,7 @@ class ChoiceViewSet(viewsets.ModelViewSet):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuizAttempt.objects.all()
     serializer_class = QuizAttemptSerializer
@@ -262,6 +264,7 @@ def api_login(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@ensure_csrf_cookie
 def api_logout(request):
     logout(request)
     return Response({'message': 'Logout successful'})
