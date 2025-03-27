@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
-from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, UserStatistics
+from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -96,14 +96,6 @@ class QuestionAttemptSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserStatisticsSerializer(serializers.ModelSerializer):
-    accuracy = serializers.ReadOnlyField()  # Include the calculated accuracy
-
-    class Meta:
-        model = UserStatistics
-        fields = '__all__'
-
-
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
@@ -196,9 +188,6 @@ class RegistrationSerializer(serializers.Serializer):
                 date_of_birth=validated_data.get('date_of_birth'),
                 gender=validated_data.get('gender')
             )
-
-            # Create UserStatistics object
-            UserStatistics.objects.create(user=user)
 
             return user
         except Exception as e:

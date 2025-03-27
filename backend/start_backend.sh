@@ -13,7 +13,7 @@ python manage.py create_quiz "Quiz 4" --description="Description for Quiz 4" --n
 python manage.py create_quiz "Quiz 5" --description="Description for Quiz 5" --num-questions=$QUESTIONS_PER_QUIZ --choices-per-question=$CHOICES_PER_QUESTION
 
 # Populate dummy data
-python manage.py populate_dummy_data  # Create dummy users and quizess data
+python manage.py populate_dummy_users  # Create dummy users
 
 # Run server
 python manage.py runserver 0.0.0.0:8000

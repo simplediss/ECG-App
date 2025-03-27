@@ -139,20 +139,3 @@ class QuestionAttempt(models.Model):
 
     def __str__(self):
         return f"Attempt for Question {self.question.id} in {self.quiz_attempt}"
-
-
-class UserStatistics(models.Model):
-    """Aggregates user statistics for progress tracking."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='statistics')
-    total_quizzes_taken = models.PositiveIntegerField(default=0)
-    total_correct_answers = models.PositiveIntegerField(default=0)
-    total_questions_answered = models.PositiveIntegerField(default=0)
-
-    @property
-    def accuracy(self):
-        if self.total_questions_answered > 0:
-            return round((self.total_correct_answers / self.total_questions_answered) * 100, 2)
-        return 0
-
-    def __str__(self):
-        return f"Statistics for {self.user.username}"

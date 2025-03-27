@@ -18,14 +18,13 @@ import os
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
-    User, Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, UserStatistics
+    User, Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt
 )
 from .serializers import (
     EcgSamplesSerializer, EcgDocLabelsSerializer, EcgSnomedSerializer,
     EcgSamplesDocLabelsSerializer, EcgSamplesSnomedSerializer,
     ProfileSerializer, QuizSerializer, QuestionSerializer, ChoiceSerializer,
-    QuizAttemptSerializer, QuestionAttemptSerializer, UserStatisticsSerializer,
-    LoginSerializer, RegistrationSerializer
+    QuizAttemptSerializer, QuestionAttemptSerializer, LoginSerializer, RegistrationSerializer
 )
 
 ITEMS_PER_PAGE = 50
@@ -74,10 +73,6 @@ class EcgSamplesSnomedViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-
-class UserStatisticsViewSet(viewsets.ReadOnlyModelViewSet):  # Read-only ViewSet
-    queryset = UserStatistics.objects.all()
-    serializer_class = UserStatisticsSerializer
 
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
@@ -142,13 +137,6 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
                 )
             except (Question.DoesNotExist, Choice.DoesNotExist):
                 continue
-
-        # Update user statistics
-        user_stats = UserStatistics.objects.get(user=request.user)
-        user_stats.total_quizzes_taken += 1
-        user_stats.total_correct_answers += correct_answers
-        user_stats.total_questions_answered += total_questions
-        user_stats.save()
 
         # Calculate score
         score = (correct_answers / total_questions * 100) if total_questions > 0 else 0
