@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from django.conf import settings
 from django.http import FileResponse, Http404
 import os
+import random
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -26,6 +27,7 @@ from .serializers import (
     ProfileSerializer, QuizSerializer, QuestionSerializer, ChoiceSerializer,
     QuizAttemptSerializer, QuestionAttemptSerializer, LoginSerializer, RegistrationSerializer
 )
+from .quiz_generator import PersonalizedQuizGenerator
 
 ITEMS_PER_PAGE = 50
     
@@ -74,10 +76,32 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def generate_random(self, request):
+        """Generate a personalized quiz based on user's performance history."""
+        try:
+            generator = PersonalizedQuizGenerator(
+                user=request.user,
+                num_questions=5,
+                personalization_weight=0.7,  # 70% personalization at max
+                recency_weight=0.5  # Moderate decay of old attempts
+            )
+            quiz = generator.generate()
+            
+            # Serialize the quiz with its questions and choices
+            serializer = self.get_serializer(quiz)
+            return Response(serializer.data)
+
+        except ValueError as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()

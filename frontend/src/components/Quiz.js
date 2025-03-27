@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { fetchQuizQuestions, submitQuizAnswers, checkAnswer } from '../api/quizApi';
+import { generateRandomQuiz, submitQuizAnswers, checkAnswer, fetchQuizQuestions } from '../api/quizApi';
 import '../styles/Quiz.css';
 
 const Quiz = () => {
@@ -10,7 +10,7 @@ const Quiz = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState(null);
@@ -66,6 +66,32 @@ const Quiz = () => {
     }
   };
 
+  const startNewQuiz = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const quiz = await generateRandomQuiz();
+      setSelectedQuiz(quiz);
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      setQuizSubmitted(false);
+      setScore(null);
+      setQuizResult(null);
+      setCurrentAnswer(null);
+      setIsAnswerChecked(false);
+      setCorrectChoiceId(null);
+      setStartTime(Date.now());
+      setDuration(null);
+      if (quiz.questions[0]) {
+        setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
+      }
+    } catch (err) {
+      setError('Failed to generate quiz. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleQuizSelect = (quiz) => {
     setSelectedQuiz(quiz);
     setCurrentQuestionIndex(0);
@@ -76,9 +102,9 @@ const Quiz = () => {
     setCurrentAnswer(null);
     setIsAnswerChecked(false);
     setCorrectChoiceId(null);
-    setStartTime(quiz ? Date.now() : null);
+    setStartTime(Date.now());
     setDuration(null);
-    if (quiz) {
+    if (quiz.questions[0]) {
       setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
     }
   };
@@ -148,30 +174,34 @@ const Quiz = () => {
   };
 
   if (isLoading) {
-    return <div className="quiz-container">Loading quizzes...</div>;
+    return <div className="quiz-container">Generating quiz...</div>;
   }
 
   if (error) {
-    return <div className="quiz-container error">{error}</div>;
+    return (
+      <div className="quiz-container">
+        <div className="error-message">{error}</div>
+        <button onClick={startNewQuiz} className="primary-button">
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   if (!selectedQuiz) {
     return (
       <div className="quiz-container">
         <div className="quiz-header">
-          <h2>Available Quizzes</h2>
+          <h2>ECG Quiz</h2>
           <button onClick={() => navigate('/home')} className="back-button">
             Back to Home
           </button>
         </div>
-        <div className="quiz-list">
-          {quizzes.map(quiz => (
-            <div key={quiz.id} className="quiz-card" onClick={() => handleQuizSelect(quiz)}>
-              <h3>{quiz.title}</h3>
-              <p>{quiz.description}</p>
-              <span className="quiz-info">Questions: {quiz.questions?.length || 0}</span>
-            </div>
-          ))}
+        <div className="quiz-start">
+          <p>Test your ECG interpretation skills with a randomly generated quiz.</p>
+          <button onClick={startNewQuiz} className="primary-button">
+            Start Quiz
+          </button>
         </div>
       </div>
     );
@@ -210,11 +240,8 @@ const Quiz = () => {
             <button onClick={() => navigate('/home')} className="primary-button">
               Back to Home
             </button>
-            <button onClick={() => handleQuizSelect(null)} className="secondary-button">
-              Back to Quiz List
-            </button>
-            <button onClick={() => handleQuizSelect(selectedQuiz)} className="secondary-button">
-              Retake Quiz
+            <button onClick={startNewQuiz} className="secondary-button">
+              Take Another Quiz
             </button>
           </div>
         </div>
@@ -293,8 +320,8 @@ const Quiz = () => {
   return (
     <div className="quiz-container">
       <div className="quiz-header">
-        <button onClick={() => handleQuizSelect(null)} className="back-button">
-          Back to Quiz List
+        <button onClick={() => setSelectedQuiz(null)} className="back-button">
+          Back to Quiz Menu
         </button>
         <h2>{selectedQuiz.title}</h2>
       </div>
