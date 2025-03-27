@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from django.conf import settings
 from django.http import FileResponse, Http404
 import os
+import random
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -74,10 +75,79 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def generate_random(self, request):
+        """Generate a random quiz with random questions."""
+        try:
+            # Get available samples with SNOMED labels
+            available_samples = EcgSamples.objects.filter(snomed_labels__isnull=False).distinct()
+            if not available_samples.exists():
+                return Response({'error': 'No ECG samples available'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Get all SNOMED labels for creating distractors
+            all_snomed_labels = list(EcgSnomed.objects.all())
+            if len(all_snomed_labels) < 4:  # We need at least 4 labels for choices
+                return Response({'error': 'Not enough SNOMED labels available'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Create a temporary quiz with the new title format
+            current_time = timezone.now()
+            quiz_title = f"{request.user.username}_{current_time.strftime('%Y%m%d_%H%M%S')}"
+            quiz = Quiz.objects.create(
+                title=quiz_title,
+                description="A randomly generated quiz"
+            )
+
+            # Select random samples (5 questions)
+            samples = list(available_samples)
+            random.shuffle(samples)
+            selected_samples = samples[:5]
+
+            for sample in selected_samples:
+                # Get the correct SNOMED labels for this sample
+                correct_labels = list(EcgSnomed.objects.filter(samples__sample_id=sample))
+                if not correct_labels:
+                    continue
+
+                # Choose one correct label randomly
+                correct_label = random.choice(correct_labels)
+
+                # Create the question
+                question = Question.objects.create(
+                    quiz=quiz,
+                    ecg_sample=sample,
+                    question_text=f"What is the correct diagnosis for this ECG?"
+                )
+
+                # Create the correct choice
+                Choice.objects.create(
+                    question=question,
+                    text=correct_label.label_desc,
+                    is_correct=True
+                )
+
+                # Create incorrect choices (distractors)
+                incorrect_labels = [label for label in all_snomed_labels if label not in correct_labels]
+                selected_incorrect = random.sample(incorrect_labels, min(3, len(incorrect_labels)))
+
+                for label in selected_incorrect:
+                    Choice.objects.create(
+                        question=question,
+                        text=label.label_desc,
+                        is_correct=False
+                    )
+
+            # Serialize the quiz with its questions and choices
+            serializer = self.get_serializer(quiz)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()

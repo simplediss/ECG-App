@@ -102,7 +102,7 @@ const QuizHistory = () => {
                       onClick={() => navigate('/quiz', { state: { retakeQuizId: attempt.quiz?.id } })}
                       className="retake-button"
                     >
-                      Retake
+                      Retake Quiz
                     </button>
                   </td>
                 </tr>

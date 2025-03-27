@@ -51,6 +51,11 @@
   color: #666;
 }
 
+.quiz-history-table table td:nth-child(1) {
+  font-weight: 500;
+  color: #2196f3;
+}
+
 .retake-button {
   padding: 0.5rem 1rem;
   background-color: #2196f3;
