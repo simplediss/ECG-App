@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { fetchQuizQuestions, submitQuizAnswers, checkAnswer } from '../api/quizApi';
 import '../styles/Quiz.css';
 
 const Quiz = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -34,6 +35,16 @@ const Quiz = () => {
   useEffect(() => {
     loadQuizzes();
   }, []);
+
+  // Effect to handle retake quiz from navigation state
+  useEffect(() => {
+    if (quizzes.length > 0 && location.state?.retakeQuizId) {
+      const quizToRetake = quizzes.find(quiz => quiz.id === location.state.retakeQuizId);
+      if (quizToRetake) {
+        handleQuizSelect(quizToRetake);
+      }
+    }
+  }, [quizzes, location.state]);
 
   // Effect to randomize choices when question changes
   useEffect(() => {
