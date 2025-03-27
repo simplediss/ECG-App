@@ -1,7 +1,11 @@
+import os
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from . import views
+
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 
 router = DefaultRouter()
@@ -27,14 +31,20 @@ urlpatterns = [
     path('api/auth/logout/', views.api_logout, name='api_logout'),
     path('api/auth/user-status/', views.api_user_status, name='api_user_status'),
     path('api/register/', views.api_register, name='api_register'),
-    # API endpoints
+    # GeneralAPI endpoints
     path('api/check-answer/', views.CheckAnswerView.as_view(), name='check-answer'),
-    # Template views (for debug purposes)
-    path('', views.home, name='home'),
-    path('samples/', views.view_ecg_samples, name='list_samples'),
-    path('snomed/', views.view_ecg_snomed, name='view_ecg_snomed'),
-    path('samples-snomed/', views.view_ecg_samples_snomed, name='view_ecg_samples_snomed'),
-    path('users/', views.view_users, name='users'),
-    path('quizzes/', views.view_quizzes, name='quizzes'),
-    path('quiz-attempts/', views.view_quiz_attempts, name='quiz-attempts'),
+    # Image serving endpoint
+    path('api/images/<path:image_path>', views.serve_ecg_image, name='serve_ecg_image'),
 ]
+
+if DEBUG:
+    # Template views - This will be displayed on the backend url
+    urlpatterns += [
+        path('', views.home, name='home'),
+        path('samples/', views.view_ecg_samples, name='list_samples'),
+        path('snomed/', views.view_ecg_snomed, name='view_ecg_snomed'),
+        path('samples-snomed/', views.view_ecg_samples_snomed, name='view_ecg_samples_snomed'),
+        path('users/', views.view_users, name='users'),
+        path('quizzes/', views.view_quizzes, name='quizzes'),
+        path('quiz-attempts/', views.view_quiz_attempts, name='quiz-attempts'),
+    ]

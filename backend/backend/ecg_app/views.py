@@ -12,6 +12,9 @@ from django.middleware.csrf import get_token
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
+from django.conf import settings
+from django.http import FileResponse, Http404
+import os
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -340,4 +343,33 @@ class CheckAnswerView(APIView):
             })
         except (Question.DoesNotExist, Choice.DoesNotExist):
             return Response({'error': 'Invalid question or choice'}, status=status.HTTP_404_NOT_FOUND)
+
+# ---------------------------------------- [Image Serving] ----------------------------------------
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def serve_ecg_image(request, image_path):
+    """
+    Securely serve ECG images from the dataset directory.
+    """
+    # Normalize the path to prevent directory traversal attacks
+    normalized_path = os.path.normpath(image_path)
+    
+    # Construct the full path
+    full_path = os.path.join(settings.DATASET_SAMPLES_PATH, normalized_path)
+    
+    # Security check: ensure the path is within the dataset directory
+    if not os.path.abspath(full_path).startswith(os.path.abspath(settings.DATASET_SAMPLES_PATH)):
+        raise Http404("Invalid image path")
+    
+    # Check if file exists
+    if not os.path.exists(full_path):
+        raise Http404("Image not found")
+    
+    # Check if it's an image file
+    if not any(full_path.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp']):
+        raise Http404("Invalid file type")
+    
+    # Serve the file
+    return FileResponse(open(full_path, 'rb'), content_type='image/jpeg')
     

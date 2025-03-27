@@ -22,6 +22,7 @@ services:
       - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
       - QUESTIONS_PER_QUIZ=5
       - CHOICES_PER_QUESTION=4
+      - DEBUG=True
     ports:
       - "8000:8000"
     volumes:

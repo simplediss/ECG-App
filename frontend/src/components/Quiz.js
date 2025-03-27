@@ -108,12 +108,6 @@ const Quiz = () => {
     }
   };
 
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-    }
-  };
-
   const handleSubmit = async () => {
     try {
       const finalAnswers = {
@@ -219,10 +213,26 @@ const Quiz = () => {
 
   const renderQuestion = () => {
     const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
+    const imagePath = currentQuestion.ecg_sample?.sample_path;
+    const imageUrl = imagePath ? `${process.env.REACT_APP_API_BASE_URL}/images/${encodeURIComponent(imagePath + '.png')}` : null;
 
     return (
       <div className="question-container">
         <h3>{currentQuestion.question_text}</h3>
+        
+        {imageUrl && (
+          <div className="ecg-image-container">
+            <img 
+              src={imageUrl} 
+              alt="ECG Sample" 
+              className="ecg-image"
+              onError={(e) => {
+                e.target.onerror = null; // Prevent infinite loop
+                e.target.src = '/placeholder-ecg.png'; // Fallback image
+              }}
+            />
+          </div>
+        )}
         
         <div className="options-container">
           {randomizedChoices.map((choice) => (
@@ -250,16 +260,16 @@ const Quiz = () => {
         <div className="question-actions">
           {!isAnswerChecked ? (
             <button
+              className="check-button"
               onClick={handleCheckAnswer}
               disabled={!currentAnswer}
-              className="check-button"
             >
               Check Answer
             </button>
           ) : (
             <button
-              onClick={handleNext}
               className="next-button"
+              onClick={handleNext}
             >
               {currentQuestionIndex === selectedQuiz.questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
             </button>
