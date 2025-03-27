@@ -23,26 +23,15 @@ const Home = () => {
     <div className="home-container">
       <div className="header">
         <h1>Welcome, {user.username}!</h1>
-        <div className="header-buttons">
-          {user.role === 'admin' && (
-            <button 
-              onClick={() => navigate('/admin')} 
-              className="admin-button"
-            >
-              Admin Dashboard
-            </button>
-          )}
-          <button onClick={() => navigate('/quiz')} className="quiz-button">
-            Take Quiz
-          </button>
-          <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
-        </div>
       </div>
       <div className="content">
-        <p>You are successfully logged in.</p>
         <div className="action-cards">
+          {user.role === 'admin' && (
+            <div className="card" onClick={() => navigate('/admin')}>
+              <h3>Admin Dashboard</h3>
+              <p>Access the admin dashboard to manage the system.</p>
+            </div>
+          )}
           <div className="card" onClick={() => navigate('/quiz')}>
             <h3>ECG Quiz</h3>
             <p>Test your ECG interpretation skills with our interactive quiz!</p>

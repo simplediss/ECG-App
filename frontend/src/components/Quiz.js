@@ -147,10 +147,10 @@ const Quiz = () => {
   return (
     <div className="quiz-container">
       <div className="quiz-header">
-        <h2>{selectedQuiz.title}</h2>
         <button onClick={() => handleQuizSelect(null)} className="back-button">
           Back to Quiz List
         </button>
+        <h2>{selectedQuiz.title}</h2>
       </div>
 
       <div className="quiz-progress">
