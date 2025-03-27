@@ -1,0 +1,372 @@
+.quiz-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.quiz-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quiz-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-card h3 {
+  margin: 0 0 1rem 0;
+  color: #2196f3;
+}
+
+.quiz-card p {
+  margin: 0 0 1rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.quiz-info {
+  display: block;
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.quiz-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.quiz-header .back-button {
+  margin-bottom: 1rem;
+  align-self: flex-start;
+}
+
+.back-button {
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid #2196f3;
+  color: #2196f3;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: #2196f3;
+  color: white;
+}
+
+.quiz-progress {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.question-container {
+  margin-bottom: 2rem;
+}
+
+.question-container h3 {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.option-button {
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-size: 1rem;
+  color: #000000;
+  position: relative;
+}
+
+.option-button:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.option-button.selected {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+}
+
+.option-button.correct {
+  background-color: #e8f5e9;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.option-button.incorrect {
+  background-color: #ffebee;
+  border-color: #f44336;
+  color: #c62828;
+}
+
+.option-button:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.question-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.check-button,
+.next-button {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.check-button {
+  background-color: #2196f3;
+  color: white;
+}
+
+.check-button:hover:not(:disabled) {
+  background-color: #1976d2;
+}
+
+.check-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.next-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.next-button:hover {
+  background-color: #388e3c;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.nav-button,
+.submit-button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.nav-button {
+  background-color: #2196f3;
+}
+
+.nav-button:hover {
+  background-color: #1976d2;
+}
+
+.submit-button {
+  background-color: #4caf50;
+}
+
+.submit-button:hover {
+  background-color: #388e3c;
+}
+
+.nav-button:disabled,
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.quiz-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-button {
+  background-color: #2196f3;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #1976d2;
+}
+
+.secondary-button {
+  background-color: transparent;
+  border: 1px solid #2196f3;
+  color: #2196f3;
+}
+
+.secondary-button:hover {
+  background-color: #e3f2fd;
+}
+
+.error {
+  color: #d32f2f;
+  text-align: center;
+  padding: 1rem;
+  background-color: #ffebee;
+  border-radius: 5px;
+  margin: 1rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .quiz-container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .quiz-list {
+    grid-template-columns: 1fr;
+  }
+
+  .question-container h3 {
+    font-size: 1.1rem;
+  }
+
+  .option-button {
+    padding: 0.8rem;
+  }
+
+  .nav-button,
+  .submit-button {
+    padding: 0.6rem 1.2rem;
+  }
+
+  .quiz-actions {
+    flex-direction: column;
+  }
+}
+
+.quiz-summary {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.quiz-summary h2 {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+}
+
+.summary-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-width: 250px;
+}
+
+.stat-card h3 {
+  color: #34495e;
+  margin-bottom: 1rem;
+}
+
+.score-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3498db, #2ecc71);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.score-value {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.performance-stats {
+  text-align: left;
+}
+
+.performance-stats p {
+  margin: 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.performance-stats p:last-child {
+  margin-top: 1rem;
+  font-weight: bold;
+  color: #27ae60;
+}
+
+.ecg-image-container {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ecg-image {
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 4px;
+} 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
-from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, UserStatistics
+from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -42,41 +42,57 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'date_of_birth', 'gender']
 
 
-class QuizSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quiz
-        fields = '__all__'
-
-
-class QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = '__all__'
-
-
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
-        fields = '__all__'
+        fields = ['id', 'text']
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True)
+    ecg_sample = EcgSamplesSerializer(read_only=True)
+    
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text', 'choices', 'ecg_sample']
+
+
+class QuizSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Quiz
+        fields = ['id', 'title', 'description', 'created_at', 'questions']
 
 
 class QuizAttemptSerializer(serializers.ModelSerializer):
+    quiz = QuizSerializer()  # Nested serializer for quiz details
+    score = serializers.SerializerMethodField()
+    correct_answers = serializers.SerializerMethodField()
+    total_questions = serializers.SerializerMethodField()
+
     class Meta:
         model = QuizAttempt
-        fields = '__all__'
+        fields = ['id', 'quiz', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions']
+
+    def get_score(self, obj):
+        question_attempts = obj.question_attempts.all()
+        total = question_attempts.count()
+        if total == 0:
+            return 0
+        correct = question_attempts.filter(is_correct=True).count()
+        return (correct / total) * 100
+
+    def get_correct_answers(self, obj):
+        return obj.question_attempts.filter(is_correct=True).count()
+
+    def get_total_questions(self, obj):
+        return obj.question_attempts.count()
 
 
 class QuestionAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionAttempt
-        fields = '__all__'
-
-
-class UserStatisticsSerializer(serializers.ModelSerializer):
-    accuracy = serializers.ReadOnlyField()  # Include the calculated accuracy
-
-    class Meta:
-        model = UserStatistics
         fields = '__all__'
 
 
@@ -172,9 +188,6 @@ class RegistrationSerializer(serializers.Serializer):
                 date_of_birth=validated_data.get('date_of_birth'),
                 gender=validated_data.get('gender')
             )
-
-            # Create UserStatistics object
-            UserStatistics.objects.create(user=user)
 
             return user
         except Exception as e:
