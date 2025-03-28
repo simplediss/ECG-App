@@ -35,11 +35,19 @@ class EcgSamplesSnomedSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
+
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    role = serializers.CharField(source='get_role_display', read_only=True)
+
     class Meta:
         model = Profile
-        fields = ['id', 'user', 'date_of_birth', 'gender']
+        fields = ['id', 'user', 'role', 'date_of_birth', 'gender']
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -67,13 +75,14 @@ class QuizSerializer(serializers.ModelSerializer):
 
 class QuizAttemptSerializer(serializers.ModelSerializer):
     quiz = QuizSerializer()  # Nested serializer for quiz details
+    user = UserSerializer()  # Add user serializer
     score = serializers.SerializerMethodField()
     correct_answers = serializers.SerializerMethodField()
     total_questions = serializers.SerializerMethodField()
 
     class Meta:
         model = QuizAttempt
-        fields = ['id', 'quiz', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions']
+        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions']
 
     def get_score(self, obj):
         question_attempts = obj.question_attempts.all()

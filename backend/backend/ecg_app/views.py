@@ -79,9 +79,26 @@ class EcgSamplesSnomedViewSet(viewsets.ModelViewSet):
 # ---------------------------------------- [User and Quiz API views] ----------------------------------------
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
+
+    def get_queryset(self):
+        user = self.request.user
+        print(f"ProfileViewSet: User {user.username} requesting profiles")
+        print(f"Is staff: {user.is_staff}")
+        print(f"Has profile: {hasattr(user, 'profile')}")
+        if hasattr(user, 'profile'):
+            print(f"User role: {user.profile.role}")
+
+        if user.is_staff:
+            queryset = Profile.objects.all()
+        elif hasattr(user, 'profile') and user.profile.role == 'teacher':
+            queryset = Profile.objects.filter(role='student')
+        else:
+            queryset = Profile.objects.none()
+        
+        print(f"Returning {queryset.count()} profiles")
+        return queryset.select_related('user')  # Add select_related to optimize query
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizViewSet(viewsets.ModelViewSet):
@@ -97,15 +114,22 @@ class QuizViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def generate_random(self, request):
         """Generate a personalized quiz based on user's performance history."""
-        # Only teachers and admins can generate quizzes
-        if not (request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role == 'teacher')):
-            return Response(
-                {'error': 'Only teachers and administrators can generate quizzes'},
-                status=status.HTTP_403_FORBIDDEN
-            )
         try:
+            # Check if user is a student
+            if hasattr(request.user, 'profile') and request.user.profile.role == 'student':
+                # Students can only generate quizzes for themselves
+                target_user = request.user
+            elif request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role == 'teacher'):
+                # Teachers and admins can generate quizzes for any user
+                target_user = request.user
+            else:
+                return Response(
+                    {'error': 'Only students, teachers, and administrators can generate quizzes'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
             generator = PersonalizedQuizGenerator(
-                user=request.user,
+                user=target_user,
                 num_questions=5,
                 personalization_weight=0.7,  # 70% personalization at max
                 recency_weight=0.5  # Moderate decay of old attempts
@@ -287,13 +311,17 @@ def api_login(request):
         
         if user is not None:
             login(request, user)
+            profile = getattr(user, 'profile', None)
             return Response({
                 'message': 'Login successful',
                 'user': {
                     'id': user.id,
                     'username': user.username,
                     'email': user.email,
-                    'role': 'admin' if user.is_superuser else 'user'
+                    'is_staff': user.is_staff,
+                    'profile': {
+                        'role': profile.role if profile else 'student'
+                    } if profile else None
                 }
             })
         else:
@@ -314,12 +342,16 @@ def api_logout(request):
 @permission_classes([IsAuthenticated])
 def api_user_status(request):
     user = request.user
+    profile = getattr(user, 'profile', None)
     return Response({
         'user': {
             'id': user.id,
             'username': user.username,
             'email': user.email,
-            'role': 'admin' if user.is_superuser else 'user'
+            'is_staff': user.is_staff,
+            'profile': {
+                'role': profile.role if profile else 'student'
+            } if profile else None
         }
     })
 

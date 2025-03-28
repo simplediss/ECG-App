@@ -66,7 +66,12 @@ export const AuthProvider = ({ children }) => {
         axios.defaults.headers.common['X-CSRFToken'] = newCsrfToken;
       }
 
+      // Set the user data
       setUser(response.data.user);
+      
+      // Immediately fetch fresh user status to ensure we have complete profile data
+      await checkUserStatus();
+      
       return true;
     } catch (error) {
       console.error('Login failed:', error);

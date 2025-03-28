@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
+import TeacherDashboard from './pages/TeacherDashboard';
 import Quiz from './components/Quiz';
 import QuizHistory from './pages/QuizHistory';
 import Navbar from './components/Navbar';
@@ -27,7 +28,21 @@ const AdminRoute = ({ children }) => {
     return <div>Loading...</div>;
   }
   
-  if (!user || user.role !== 'admin') {
+  if (!user || !user.is_staff) {
+    return <Navigate to="/home" />;
+  }
+  
+  return children;
+};
+
+const TeacherRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!user || user.profile?.role !== 'teacher') {
     return <Navigate to="/home" />;
   }
   
@@ -53,14 +68,6 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/quiz"
-          element={
-            <PrivateRoute>
-              <Quiz />
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/admin"
           element={
             <AdminRoute>
@@ -69,10 +76,18 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/profile"
+          path="/teacher"
+          element={
+            <TeacherRoute>
+              <TeacherDashboard />
+            </TeacherRoute>
+          }
+        />
+        <Route
+          path="/quiz"
           element={
             <PrivateRoute>
-              <div>Profile Page (Coming Soon)</div>
+              <Quiz />
             </PrivateRoute>
           }
         />
@@ -81,6 +96,14 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <QuizHistory />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <div>Profile Page (Coming Soon)</div>
             </PrivateRoute>
           }
         />
