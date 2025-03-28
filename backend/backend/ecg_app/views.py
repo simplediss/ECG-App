@@ -28,6 +28,7 @@ from .serializers import (
     QuizAttemptSerializer, QuestionAttemptSerializer, LoginSerializer, RegistrationSerializer
 )
 from .quiz_generator import PersonalizedQuizGenerator
+from .permissions import IsTeacher, IsStudent, IsTeacherOrAdmin, IsOwnerOrTeacherOrAdmin
 
 ITEMS_PER_PAGE = 50
     
@@ -49,32 +50,38 @@ def home(request):
 class EcgSamplesViewSet(viewsets.ModelViewSet):
     queryset = EcgSamples.objects.all()
     serializer_class = EcgSamplesSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgDocLabelsViewSet(viewsets.ModelViewSet):
     queryset = EcgDocLabels.objects.all()
     serializer_class = EcgDocLabelsSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgSnomedViewSet(viewsets.ModelViewSet):
     queryset = EcgSnomed.objects.all()
     serializer_class = EcgSnomedSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgSamplesDocLabelsViewSet(viewsets.ModelViewSet):
     queryset = EcgSamplesDocLabels.objects.all()
     serializer_class = EcgSamplesDocLabelsSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgSamplesSnomedViewSet(viewsets.ModelViewSet):
     queryset = EcgSamplesSnomed.objects.all()
     serializer_class = EcgSamplesSnomedSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 # ---------------------------------------- [User and Quiz API views] ----------------------------------------
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizViewSet(viewsets.ModelViewSet):
@@ -82,9 +89,20 @@ class QuizViewSet(viewsets.ModelViewSet):
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsTeacherOrAdmin()]
+        return [IsAuthenticated()]
+
     @action(detail=False, methods=['post'])
     def generate_random(self, request):
         """Generate a personalized quiz based on user's performance history."""
+        # Only teachers and admins can generate quizzes
+        if not (request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role == 'teacher')):
+            return Response(
+                {'error': 'Only teachers and administrators can generate quizzes'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         try:
             generator = PersonalizedQuizGenerator(
                 user=request.user,
@@ -106,20 +124,24 @@ class QuizViewSet(viewsets.ModelViewSet):
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 class ChoiceViewSet(viewsets.ModelViewSet):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuizAttempt.objects.all()
     serializer_class = QuizAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrTeacherOrAdmin]
 
     def get_queryset(self):
-        return QuizAttempt.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher'):
+            return QuizAttempt.objects.all()
+        return QuizAttempt.objects.filter(user=user)
 
     def create(self, request, *args, **kwargs):
         # Get the quiz
@@ -175,10 +197,13 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
 class QuestionAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuestionAttempt.objects.all()
     serializer_class = QuestionAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrTeacherOrAdmin]
 
     def get_queryset(self):
-        return QuestionAttempt.objects.filter(quiz_attempt__user=self.request.user)
+        user = self.request.user
+        if user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher'):
+            return QuestionAttempt.objects.all()
+        return QuestionAttempt.objects.filter(quiz_attempt__user=user)
 
 # ---------------------------------------- [ECG Data templates views] ----------------------------------------
 

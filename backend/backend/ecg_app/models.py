@@ -67,6 +67,11 @@ class Profile(models.Model):
         blank=True,
         null=True
     )
+    role = models.CharField(
+        max_length=10,
+        choices=[('student', 'Student'), ('teacher', 'Teacher')],
+        default='student'
+    )
 
     def __str__(self):
         return self.user.username
