@@ -10,6 +10,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--username', type=str, help='Username for the new user')
         parser.add_argument('--email', type=str, help='Email for the new user')
+        parser.add_argument('--first_name', type=str, help='First name for the new user')
+        parser.add_argument('--last_name', type=str, help='Last name for the new user')
         parser.add_argument('--role', type=str, choices=['student', 'teacher'], help='Role for the new user (student/teacher)')
         parser.add_argument('--superuser', action='store_true', help='Create a superuser (admin)')
         parser.add_argument('--password', type=str, help='Password for the new user (if not provided, will prompt)')
@@ -17,6 +19,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         username = options.get('username')
         email = options.get('email')
+        first_name = options.get('first_name')
+        last_name = options.get('last_name')
         role = options.get('role')
         is_superuser = options.get('superuser')
         password = options.get('password')
@@ -28,6 +32,14 @@ class Command(BaseCommand):
         # If no email provided, prompt for it
         if not email:
             email = input('Enter email: ')
+
+        # If no first name provided, prompt for it
+        if not first_name:
+            first_name = input('Enter first name: ')
+
+        # If no last name provided, prompt for it
+        if not last_name:
+            last_name = input('Enter last name: ')
 
         # If no role provided and not superuser, prompt for it
         if not role and not is_superuser:
@@ -49,6 +61,8 @@ class Command(BaseCommand):
                 username=username,
                 email=email,
                 password=password,
+                first_name=first_name,
+                last_name=last_name,
                 is_superuser=is_superuser,
                 is_staff=is_superuser
             )

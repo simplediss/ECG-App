@@ -27,10 +27,8 @@ const TeacherDashboard = () => {
   const fetchStudents = async () => {
     try {
       const response = await axiosInstance.get('profiles/');
-      console.log('Raw students response:', response.data);  // Debug log for raw data
       // Filter out any profiles without user data
       const validStudents = response.data.filter(student => student && student.user);
-      console.log('Filtered students:', validStudents);  // Debug log for filtered data
       setStudents(validStudents);
     } catch (error) {
       console.error('Error fetching students:', error.response?.data || error.message);
@@ -41,7 +39,6 @@ const TeacherDashboard = () => {
   const fetchQuizAttempts = async () => {
     try {
       const response = await axiosInstance.get('quiz-attempts/');
-      console.log('Quiz attempts response:', response.data);  // Debug log
       setQuizAttempts(response.data);
     } catch (error) {
       console.error('Error fetching quiz attempts:', error.response?.data || error.message);
@@ -71,7 +68,6 @@ const TeacherDashboard = () => {
         averageScore: studentAttempts.reduce((acc, attempt) => acc + attempt.score, 0) / studentAttempts.length || 0,
         recentAttempts: studentAttempts.slice(-5),
         improvement: calculateImprovement(studentAttempts),
-        performanceByTopic: calculatePerformanceByTopic(studentAttempts),
         consistency: calculateConsistency(studentAttempts),
         lastActive: getLastActiveDate(studentAttempts)
       };
@@ -87,15 +83,6 @@ const TeacherDashboard = () => {
     const firstScore = sortedAttempts[0].score;
     const lastScore = sortedAttempts[sortedAttempts.length - 1].score;
     return ((lastScore - firstScore) / firstScore) * 100;
-  };
-
-  const calculatePerformanceByTopic = (attempts) => {
-    // This would need to be implemented based on your quiz topics
-    return {
-      'Topic 1': 75,
-      'Topic 2': 82,
-      'Topic 3': 68
-    };
   };
 
   const calculateConsistency = (attempts) => {
@@ -197,9 +184,9 @@ const TeacherDashboard = () => {
                   className={`student-card ${selectedStudent?.id === student.id ? 'selected' : ''}`}
                   onClick={() => setSelectedStudent(selectedStudent?.id === student.id ? null : student)}
                 >
-                  <h3>{student.user.username}</h3>
+                  <h3>{student.user.first_name} {student.user.last_name}</h3>
+                  <p>Username: {student.user.username}</p>
                   <p>Email: {student.user.email}</p>
-                  <p>Role: {student.role}</p>
                   <p>Quiz Attempts: {getStudentAttempts(student.user.id).length}</p>
                   <p>Average Score: {getAverageScore(student.user.id).toFixed(1)}%</p>
                   <p>Last Active: {getLastActiveDate(getStudentAttempts(student.user.id))?.toLocaleDateString() || 'Never'}</p>
