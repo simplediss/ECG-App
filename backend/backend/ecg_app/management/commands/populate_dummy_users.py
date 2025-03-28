@@ -4,8 +4,7 @@ import random
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from ecg_app.models import (
-    Profile, Quiz, Question, Choice, QuizAttempt,
-    QuestionAttempt, UserStatistics, EcgSamples
+    Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, EcgSamples
 )
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
