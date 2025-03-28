@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -96,35 +98,56 @@ const Navbar = () => {
             )}
           </ul>
           
-          {user && (
-            <div className="user-menu" ref={dropdownRef}>
-              <button 
-                className="user-toggle" 
-                onClick={() => setShowDropdown(!showDropdown)}
-              >
-                <span className="avatar">
-                  {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+          <div className="navbar-right">
+            <div className="theme-switch-wrapper">
+              <span className="theme-switch-icon">🌙</span>
+              <label className="theme-switch" htmlFor="theme-checkbox">
+                <input 
+                  type="checkbox" 
+                  id="theme-checkbox" 
+                  checked={darkMode}
+                  onChange={toggleDarkMode}
+                  aria-label="Toggle dark mode"
+                />
+                <span className="slider round">
+                  <span className="sr-only">
+                    {darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                  </span>
                 </span>
-                <span className="username">{user.username}</span>
-                <span className="dropdown-icon">▼</span>
-              </button>
-              
-              {showDropdown && (
-                <div className="dropdown-menu">
-                  <Link to="/profile" className="dropdown-item">
-                    <span className="dropdown-icon">👤</span> Profile
-                  </Link>
-                  <Link to="/settings" className="dropdown-item">
-                    <span className="dropdown-icon">⚙️</span> Settings
-                  </Link>
-                  <div className="dropdown-divider"></div>
-                  <button onClick={handleLogout} className="dropdown-item text-danger">
-                    <span className="dropdown-icon">🚪</span> Logout
-                  </button>
-                </div>
-              )}
+              </label>
+              <span className="theme-switch-icon">☀️</span>
             </div>
-          )}
+            
+            {user && (
+              <div className="user-menu" ref={dropdownRef}>
+                <button 
+                  className="user-toggle" 
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  <span className="avatar">
+                    {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                  <span className="username">{user.username}</span>
+                  <span className="dropdown-icon">▼</span>
+                </button>
+                
+                {showDropdown && (
+                  <div className="dropdown-menu">
+                    <Link to="/profile" className="dropdown-item">
+                      <span className="dropdown-icon">👤</span> Profile
+                    </Link>
+                    <Link to="/settings" className="dropdown-item">
+                      <span className="dropdown-icon">⚙️</span> Settings
+                    </Link>
+                    <div className="dropdown-divider"></div>
+                    <button onClick={handleLogout} className="dropdown-item text-danger">
+                      <span className="dropdown-icon">🚪</span> Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>

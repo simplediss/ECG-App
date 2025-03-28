@@ -245,6 +245,12 @@ const Quiz = () => {
       return `${minutes}m ${remainingSeconds}s`;
     };
 
+    // Calculate score percentage for the circle
+    const scorePercentage = Math.round(score);
+    const scoreStyle = {
+      '--score-percentage': `${scorePercentage}%`
+    };
+
     return (
       <div className="quiz-container">
         <div className="quiz-summary">
@@ -252,8 +258,8 @@ const Quiz = () => {
           <div className="summary-stats">
             <div className="stat-card">
               <h3>Overall Score</h3>
-              <div className="score-circle">
-                <span className="score-value">{Math.round(score)}%</span>
+              <div className="score-circle" style={scoreStyle}>
+                <span className="score-value">{scorePercentage}%</span>
               </div>
             </div>
             <div className="stat-card">

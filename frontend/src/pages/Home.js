@@ -48,7 +48,7 @@ const Home = () => {
             <div className="card-icon">📊</div>
             <h3>View History</h3>
             <p>Review your past quiz attempts and track your progress</p>
-            <button className="btn btn-outline">See History</button>
+            <button className="btn btn-primary">See History</button>
           </div>
           
           {user.is_staff && (

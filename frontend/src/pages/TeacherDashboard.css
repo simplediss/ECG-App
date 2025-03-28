@@ -12,17 +12,18 @@
 }
 
 .dashboard-section {
-  background: white;
+  background: var(--bg-white);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--box-shadow);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dashboard-section h2 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid var(--border-color);
 }
 
 /* Students Section */
@@ -37,7 +38,7 @@
 }
 
 .student-card {
-  background: #f8f9fa;
+  background: var(--bg-main);
   border-radius: 6px;
   padding: 1rem;
   cursor: pointer;
@@ -47,21 +48,21 @@
 
 .student-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--box-shadow);
 }
 
 .student-card.selected {
-  border-color: #3498db;
-  background: #ebf5fb;
+  border-color: var(--primary);
+  background: rgba(67, 97, 238, 0.1);
 }
 
 .student-card h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .student-card p {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0.25rem 0;
 }
 
@@ -78,14 +79,15 @@
 }
 
 .stat-card {
-  background: #f8f9fa;
+  background: var(--bg-main);
   border-radius: 6px;
   padding: 1rem;
   text-align: center;
+  transition: background-color 0.3s ease;
 }
 
 .stat-card h3 {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
 }
@@ -93,15 +95,15 @@
 .stat-value {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .stat-value.positive {
-  color: #27ae60;
+  color: var(--success);
 }
 
 .stat-value.negative {
-  color: #e74c3c;
+  color: var(--danger);
 }
 
 .recent-attempts {
@@ -109,13 +111,14 @@
 }
 
 .attempt-card {
-  background: #f8f9fa;
+  background: var(--bg-main);
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background-color 0.3s ease;
 }
 
 /* Quiz Attempts Section */
@@ -130,23 +133,24 @@
 }
 
 .quiz-attempt-card {
-  background: #f8f9fa;
+  background: var(--bg-main);
   border-radius: 6px;
   padding: 1rem;
-  transition: transform 0.2s;
+  transition: all 0.2s ease;
 }
 
 .quiz-attempt-card:hover {
   transform: translateY(-2px);
+  box-shadow: var(--box-shadow-sm);
 }
 
 .quiz-attempt-card h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .quiz-attempt-card p {
-  color: #666;
+  color: var(--text-secondary);
   margin: 0.25rem 0;
 }
 
@@ -155,15 +159,15 @@
 }
 
 .quiz-attempt-card .score.good {
-  color: #27ae60;
+  color: var(--success);
 }
 
 .quiz-attempt-card .score.average {
-  color: #f39c12;
+  color: var(--warning);
 }
 
 .quiz-attempt-card .score.poor {
-  color: #e74c3c;
+  color: var(--danger);
 }
 
 /* Responsive Design */

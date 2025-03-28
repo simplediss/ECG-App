@@ -5,8 +5,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-light);
+  background-color: var(--bg-main);
   color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 :root {
@@ -20,8 +21,8 @@ body {
   --warning: #ffbe0b;
   --info: #4cc9f0;
   
-  /* Backgrounds */
-  --bg-light: #f8f9fa;
+  /* Light theme (default) */
+  --bg-main: #f8f9fa;
   --bg-white: #ffffff;
   --bg-dark: #212529;
   
@@ -50,6 +51,26 @@ body {
   --space-lg: 1.5rem;
   --space-xl: 2rem;
   --space-xxl: 3rem;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-main: #1e1e2e;
+  --bg-white: #2a2a3c;
+  --bg-dark: #16161f;
+  
+  /* Text colors */
+  --text-primary: #e9ecef;
+  --text-secondary: #adb5bd;
+  --text-light: #f8f9fa;
+  --text-muted: #6c757d;
+  
+  /* Borders and shadows */
+  --border-color: #3a3a4c;
+  --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.2);
 }
 
 * {
