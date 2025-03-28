@@ -1,11 +1,15 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = async () => {
     try {
@@ -16,42 +20,112 @@ const Navbar = () => {
     }
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Determine if link is active
+  const isActive = (path) => {
+    return location.pathname === path ? 'active' : '';
+  };
+
   return (
     <nav className="navbar">
-      <div className="navbar-brand">
-        <Link to="/" className="navbar-title">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-brand">
+          <span className="navbar-icon">❤️</span>
           ECG Master
         </Link>
-      </div>
-      <div className="navbar-links">
-        <Link to="/profile" className="nav-link">
-          Profile
-        </Link>
-        <Link to="/quiz-history" className="nav-link">
-          Quiz History
-        </Link>
-
-        {user?.is_staff && (
-          <Link to="/admin" className="nav-link">
-            Admin Dashboard
-          </Link>
-        )}
         
-        {user?.profile?.role === 'teacher' && (
-          <Link to="/teacher" className="nav-link">
-            Teacher Dashboard
-          </Link>
-        )}
-
-        {user?.profile?.role === 'student' && (
-          <Link to="/quiz" className="nav-link">
-            Take Quiz
-          </Link>
-        )}
-
-        <button onClick={handleLogout} className="logout-button">
-          Logout
+        <button 
+          className={`mobile-toggle ${isMobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
+
+        <div className={`navbar-collapse ${isMobileMenuOpen ? 'show' : ''}`}>
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <Link to="/home" className={`nav-link ${isActive('/home')}`}>
+                Home
+              </Link>
+            </li>
+            
+            {user?.profile?.role === 'student' && (
+              <li className="nav-item">
+                <Link to="/quiz" className={`nav-link ${isActive('/quiz')}`}>
+                  Take Quiz
+                </Link>
+              </li>
+            )}
+            
+            <li className="nav-item">
+              <Link to="/quiz-history" className={`nav-link ${isActive('/quiz-history')}`}>
+                History
+              </Link>
+            </li>
+            
+            {user?.is_staff && (
+              <li className="nav-item">
+                <Link to="/admin" className={`nav-link ${isActive('/admin')}`}>
+                  Admin
+                </Link>
+              </li>
+            )}
+            
+            {user?.profile?.role === 'teacher' && (
+              <li className="nav-item">
+                <Link to="/teacher" className={`nav-link ${isActive('/teacher')}`}>
+                  Teacher
+                </Link>
+              </li>
+            )}
+          </ul>
+          
+          {user && (
+            <div className="user-menu" ref={dropdownRef}>
+              <button 
+                className="user-toggle" 
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                <span className="avatar">
+                  {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                </span>
+                <span className="username">{user.username}</span>
+                <span className="dropdown-icon">▼</span>
+              </button>
+              
+              {showDropdown && (
+                <div className="dropdown-menu">
+                  <Link to="/profile" className="dropdown-item">
+                    <span className="dropdown-icon">👤</span> Profile
+                  </Link>
+                  <Link to="/settings" className="dropdown-item">
+                    <span className="dropdown-icon">⚙️</span> Settings
+                  </Link>
+                  <div className="dropdown-divider"></div>
+                  <button onClick={handleLogout} className="dropdown-item text-danger">
+                    <span className="dropdown-icon">🚪</span> Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

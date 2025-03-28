@@ -33,4 +33,11 @@ axiosInstance.interceptors.request.use(async (config) => {
     return Promise.reject(error);
 });
 
+// Helper for getting image URLs with the correct base
+export const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path; // Already a full URL
+    return `${API_BASE_URL}/images/${encodeURIComponent(path)}`;
+};
+
 export default axiosInstance;
