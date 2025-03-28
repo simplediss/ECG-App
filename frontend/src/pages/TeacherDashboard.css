@@ -1,0 +1,187 @@
+.teacher-dashboard {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.dashboard-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-section h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #eee;
+}
+
+/* Students Section */
+.students-section {
+  grid-column: 1 / -1;
+}
+
+.students-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.student-card {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.student-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.student-card.selected {
+  border-color: #3498db;
+  background: #ebf5fb;
+}
+
+.student-card h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.student-card p {
+  color: #666;
+  margin: 0.25rem 0;
+}
+
+/* Student Stats Section */
+.student-stats-section {
+  grid-column: 1 / -1;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-card h3 {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.stat-value.positive {
+  color: #27ae60;
+}
+
+.stat-value.negative {
+  color: #e74c3c;
+}
+
+.recent-attempts {
+  margin-top: 1.5rem;
+}
+
+.attempt-card {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Quiz Attempts Section */
+.attempts-section {
+  grid-column: 1 / -1;
+}
+
+.quiz-attempts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.quiz-attempt-card {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  transition: transform 0.2s;
+}
+
+.quiz-attempt-card:hover {
+  transform: translateY(-2px);
+}
+
+.quiz-attempt-card h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.quiz-attempt-card p {
+  color: #666;
+  margin: 0.25rem 0;
+}
+
+.quiz-attempt-card .score {
+  font-weight: bold;
+}
+
+.quiz-attempt-card .score.good {
+  color: #27ae60;
+}
+
+.quiz-attempt-card .score.average {
+  color: #f39c12;
+}
+
+.quiz-attempt-card .score.poor {
+  color: #e74c3c;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .teacher-dashboard {
+    padding: 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .students-list,
+  .quiz-attempts-list {
+    grid-template-columns: 1fr;
+  }
+} 

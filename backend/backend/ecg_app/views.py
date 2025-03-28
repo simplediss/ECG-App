@@ -28,6 +28,7 @@ from .serializers import (
     QuizAttemptSerializer, QuestionAttemptSerializer, LoginSerializer, RegistrationSerializer
 )
 from .quiz_generator import PersonalizedQuizGenerator
+from .permissions import IsTeacher, IsStudent, IsTeacherOrAdmin, IsOwnerOrTeacherOrAdmin
 
 ITEMS_PER_PAGE = 50
     
@@ -49,32 +50,55 @@ def home(request):
 class EcgSamplesViewSet(viewsets.ModelViewSet):
     queryset = EcgSamples.objects.all()
     serializer_class = EcgSamplesSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgDocLabelsViewSet(viewsets.ModelViewSet):
     queryset = EcgDocLabels.objects.all()
     serializer_class = EcgDocLabelsSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgSnomedViewSet(viewsets.ModelViewSet):
     queryset = EcgSnomed.objects.all()
     serializer_class = EcgSnomedSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgSamplesDocLabelsViewSet(viewsets.ModelViewSet):
     queryset = EcgSamplesDocLabels.objects.all()
     serializer_class = EcgSamplesDocLabelsSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 
 class EcgSamplesSnomedViewSet(viewsets.ModelViewSet):
     queryset = EcgSamplesSnomed.objects.all()
     serializer_class = EcgSamplesSnomedSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 # ---------------------------------------- [User and Quiz API views] ----------------------------------------
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
+
+    def get_queryset(self):
+        user = self.request.user
+        print(f"ProfileViewSet: User {user.username} requesting profiles")
+        print(f"Is staff: {user.is_staff}")
+        print(f"Has profile: {hasattr(user, 'profile')}")
+        if hasattr(user, 'profile'):
+            print(f"User role: {user.profile.role}")
+
+        if user.is_staff:
+            queryset = Profile.objects.all()
+        elif hasattr(user, 'profile') and user.profile.role == 'teacher':
+            queryset = Profile.objects.filter(role='student')
+        else:
+            queryset = Profile.objects.none()
+        
+        print(f"Returning {queryset.count()} profiles")
+        return queryset.select_related('user')  # Add select_related to optimize query
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizViewSet(viewsets.ModelViewSet):
@@ -82,12 +106,30 @@ class QuizViewSet(viewsets.ModelViewSet):
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsTeacherOrAdmin()]
+        return [IsAuthenticated()]
+
     @action(detail=False, methods=['post'])
     def generate_random(self, request):
         """Generate a personalized quiz based on user's performance history."""
         try:
+            # Check if user is a student
+            if hasattr(request.user, 'profile') and request.user.profile.role == 'student':
+                # Students can only generate quizzes for themselves
+                target_user = request.user
+            elif request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role == 'teacher'):
+                # Teachers and admins can generate quizzes for any user
+                target_user = request.user
+            else:
+                return Response(
+                    {'error': 'Only students, teachers, and administrators can generate quizzes'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
             generator = PersonalizedQuizGenerator(
-                user=request.user,
+                user=target_user,
                 num_questions=5,
                 personalization_weight=0.7,  # 70% personalization at max
                 recency_weight=0.5  # Moderate decay of old attempts
@@ -106,20 +148,24 @@ class QuizViewSet(viewsets.ModelViewSet):
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 class ChoiceViewSet(viewsets.ModelViewSet):
     queryset = Choice.objects.all()
     serializer_class = ChoiceSerializer
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuizAttempt.objects.all()
     serializer_class = QuizAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrTeacherOrAdmin]
 
     def get_queryset(self):
-        return QuizAttempt.objects.filter(user=self.request.user)
+        user = self.request.user
+        if user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher'):
+            return QuizAttempt.objects.all()
+        return QuizAttempt.objects.filter(user=user)
 
     def create(self, request, *args, **kwargs):
         # Get the quiz
@@ -175,10 +221,13 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
 class QuestionAttemptViewSet(viewsets.ModelViewSet):
     queryset = QuestionAttempt.objects.all()
     serializer_class = QuestionAttemptSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwnerOrTeacherOrAdmin]
 
     def get_queryset(self):
-        return QuestionAttempt.objects.filter(quiz_attempt__user=self.request.user)
+        user = self.request.user
+        if user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher'):
+            return QuestionAttempt.objects.all()
+        return QuestionAttempt.objects.filter(quiz_attempt__user=user)
 
 # ---------------------------------------- [ECG Data templates views] ----------------------------------------
 
@@ -262,13 +311,17 @@ def api_login(request):
         
         if user is not None:
             login(request, user)
+            profile = getattr(user, 'profile', None)
             return Response({
                 'message': 'Login successful',
                 'user': {
                     'id': user.id,
                     'username': user.username,
                     'email': user.email,
-                    'role': 'admin' if user.is_superuser else 'user'
+                    'is_staff': user.is_staff,
+                    'profile': {
+                        'role': profile.role if profile else 'student'
+                    } if profile else None
                 }
             })
         else:
@@ -289,12 +342,16 @@ def api_logout(request):
 @permission_classes([IsAuthenticated])
 def api_user_status(request):
     user = request.user
+    profile = getattr(user, 'profile', None)
     return Response({
         'user': {
             'id': user.id,
             'username': user.username,
             'email': user.email,
-            'role': 'admin' if user.is_superuser else 'user'
+            'is_staff': user.is_staff,
+            'profile': {
+                'role': profile.role if profile else 'student'
+            } if profile else None
         }
     })
 

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -30,9 +30,25 @@ const Navbar = () => {
         <Link to="/quiz-history" className="nav-link">
           Quiz History
         </Link>
-        <Link to="/settings" className="nav-link">
-          Settings
-        </Link>
+
+        {user?.is_staff && (
+          <Link to="/admin" className="nav-link">
+            Admin Dashboard
+          </Link>
+        )}
+        
+        {user?.profile?.role === 'teacher' && (
+          <Link to="/teacher" className="nav-link">
+            Teacher Dashboard
+          </Link>
+        )}
+
+        {user?.profile?.role === 'student' && (
+          <Link to="/quiz" className="nav-link">
+            Take Quiz
+          </Link>
+        )}
+
         <button onClick={handleLogout} className="logout-button">
           Logout
         </button>

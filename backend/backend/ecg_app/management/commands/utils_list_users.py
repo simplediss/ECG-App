@@ -17,9 +17,7 @@ class Command(BaseCommand):
         
         for user in users:
             try:
-                profile = user.profile
-                stats = user.statistics
-                
+                profile = user.profile                
                 self.stdout.write(self.style.SUCCESS(f'User: {user.username}'))
                 self.stdout.write(f'  ID: {user.id}')
                 self.stdout.write(f'  Email: {user.email}')
@@ -32,11 +30,6 @@ class Command(BaseCommand):
                 self.stdout.write(f'  Is Active: {user.is_active}')
                 self.stdout.write(f'  Date Joined: {user.date_joined}')
                 self.stdout.write(f'  Last Login: {user.last_login or "Never"}')
-                self.stdout.write(f'  Statistics:')
-                self.stdout.write(f'    Total Quizzes Taken: {stats.total_quizzes_taken}')
-                self.stdout.write(f'    Total Correct Answers: {stats.total_correct_answers}')
-                self.stdout.write(f'    Total Questions Answered: {stats.total_questions_answered}')
-                self.stdout.write(f'    Accuracy: {stats.accuracy}%')
                 self.stdout.write('-' * 50 + '\n')
                 
             except Profile.DoesNotExist:

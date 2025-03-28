@@ -20,8 +20,6 @@ services:
       - DATABASE_URL=postgres://postgres:mysecretpassword@database:5432/postgres
       - DATASET_SAMPLES_PATH=/dataset/samples_dev  # directory with ECG samples
       - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
-      - QUESTIONS_PER_QUIZ=5
-      - CHOICES_PER_QUESTION=4
       - DEBUG=True
     ports:
       - "8000:8000"
