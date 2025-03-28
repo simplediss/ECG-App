@@ -1,0 +1,1 @@
+docker exec -it ecg-database-postgres psql -U postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
