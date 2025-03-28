@@ -30,6 +30,8 @@ urlpatterns = [
     path('api/auth/logout/', views.api_logout, name='api_logout'),
     path('api/auth/user-status/', views.api_user_status, name='api_user_status'),
     path('api/register/', views.api_register, name='api_register'),
+    # User Management API endpoints
+    path('api/user-profile/<int:profile_id>/', views.update_user_profile, name='update_user_profile'),
     # GeneralAPI endpoints
     path('api/check-answer/', views.CheckAnswerView.as_view(), name='check-answer'),
     # Image serving endpoint

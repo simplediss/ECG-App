@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import '../styles/AdminDashboard.css';
 import './TeacherDashboard.css'; // Import teacher dashboard styles
+import UserManagement from './UserManagement'; // Import the UserManagement component
 
 const AdminDashboard = () => {
     const [students, setStudents] = useState([]);
@@ -14,6 +15,7 @@ const AdminDashboard = () => {
     const [filterBy, setFilterBy] = useState('all');
     const [timeRange, setTimeRange] = useState('all');
     const [activeSection, setActiveSection] = useState('admin');
+    const [activeFeature, setActiveFeature] = useState(null);
 
     useEffect(() => {
         fetchStudents();
@@ -141,8 +143,31 @@ const AdminDashboard = () => {
         return quizAttempts.filter(attempt => attempt.user?.id === userId);
     };
 
+    // Handle feature selection
+    const selectFeature = (feature) => {
+        setActiveFeature(feature);
+    };
+
+    // Return to main admin view
+    const goBackToAdmin = () => {
+        setActiveFeature(null);
+    };
+
     if (loading) {
         return <div>Loading...</div>;
+    }
+
+    // Render specific feature view if one is selected
+    if (activeFeature === 'user-management') {
+        return (
+            <div className="admin-dashboard">
+                <h1>Admin Dashboard</h1>
+                <button className="back-button" onClick={goBackToAdmin}>
+                    ← Back to Admin Dashboard
+                </button>
+                <UserManagement />
+            </div>
+        );
     }
 
     return (
@@ -172,7 +197,12 @@ const AdminDashboard = () => {
                         <div className="feature-card">
                             <h3>User Management</h3>
                             <p>Create, edit, and delete user accounts</p>
-                            <button className="feature-button">Manage Users</button>
+                            <button 
+                                className="feature-button" 
+                                onClick={() => selectFeature('user-management')}
+                            >
+                                Manage Users
+                            </button>
                         </div>
                         <div className="feature-card">
                             <h3>Site Settings</h3>
@@ -253,45 +283,30 @@ const AdminDashboard = () => {
                                         <p className="stat-value">{studentStats.averageScore.toFixed(1)}%</p>
                                     </div>
                                     <div className="stat-card">
-                                        <h3>Improvement</h3>
-                                        <p className={`stat-value ${studentStats.improvement >= 0 ? 'positive' : 'negative'}`}>
-                                            {studentStats.improvement.toFixed(1)}%
-                                        </p>
+                                        <h3>Progress</h3>
+                                        <p className="stat-value">{studentStats.improvement > 0 ? '+' : ''}{studentStats.improvement.toFixed(1)}%</p>
                                     </div>
                                     <div className="stat-card">
                                         <h3>Consistency</h3>
                                         <p className="stat-value">{studentStats.consistency.toFixed(1)}%</p>
                                     </div>
                                 </div>
+                                <h3>Recent Quiz Attempts</h3>
+                                <div className="recent-attempts">
+                                    {studentStats.recentAttempts.length > 0 ? (
+                                        studentStats.recentAttempts.map((attempt, index) => (
+                                            <div key={index} className="attempt-card">
+                                                <p className="attempt-title">{attempt.quiz?.title || 'Quiz'}</p>
+                                                <p className="attempt-date">{new Date(attempt.completed_at).toLocaleDateString()}</p>
+                                                <p className="attempt-score">Score: {attempt.score.toFixed(1)}%</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p>No recent attempts</p>
+                                    )}
+                                </div>
                             </section>
                         )}
-
-                        {/* Recent Quiz Attempts Section */}
-                        <section className="dashboard-section attempts-section">
-                            <h2>Recent Quiz Attempts</h2>
-                            <div className="quiz-attempts-list">
-                                {quizAttempts
-                                    .filter(attempt => {
-                                        if (timeRange === 'all') return true;
-                                        const attemptDate = new Date(attempt.completed_at);
-                                        const daysAgo = parseInt(timeRange);
-                                        const cutoffDate = new Date();
-                                        cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
-                                        return attemptDate >= cutoffDate;
-                                    })
-                                    .slice(0, 10)
-                                    .map(attempt => (
-                                        <div key={attempt.id} className="quiz-attempt-card">
-                                            <h3>Quiz: {attempt.quiz?.title || 'Untitled Quiz'}</h3>
-                                            <p>Student: {attempt.user?.username || 'Unknown Student'}</p>
-                                            <p className={`score ${attempt.score >= 70 ? 'good' : attempt.score >= 50 ? 'average' : 'poor'}`}>
-                                                Score: {attempt.score.toFixed(1)}%
-                                            </p>
-                                            <p>Date: {new Date(attempt.completed_at).toLocaleDateString()}</p>
-                                        </div>
-                                    ))}
-                            </div>
-                        </section>
                     </div>
                 </div>
             )}

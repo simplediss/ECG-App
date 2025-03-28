@@ -43,6 +43,25 @@ tr:hover {
     background-color: #f9f9f9;
 }
 
+/* Back button for returning to main dashboard */
+.back-button {
+    background-color: #f1f1f1;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #333;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #e0e0e0;
+}
+
 /* Navigation tabs for admin/teacher views */
 .dashboard-navigation {
     display: flex;
