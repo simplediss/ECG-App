@@ -413,6 +413,86 @@ class CheckAnswerView(APIView):
         except (Question.DoesNotExist, Choice.DoesNotExist):
             return Response({'error': 'Invalid question or choice'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated, IsTeacherOrAdmin])
+def update_user_profile(request, profile_id):
+    """
+    Custom endpoint to update both User and Profile models in a single request.
+    Only admin users can update other users.
+    """
+    try:
+        # Check if the profile exists
+        profile = Profile.objects.select_related('user').get(id=profile_id)
+        
+        # Only admin users can update other users
+        if not request.user.is_staff and request.user.id != profile.user.id:
+            return Response(
+                {'error': 'You do not have permission to update this user.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Get data from request
+        data = request.data
+        user_data = data.get('user', {})
+        profile_data = {
+            'date_of_birth': data.get('date_of_birth'),
+            'gender': data.get('gender'),
+        }
+        
+        # If role is provided and user is admin, update role
+        if request.user.is_staff and 'role' in data:
+            profile_data['role'] = data['role']
+        
+        # Update User model fields
+        user = profile.user
+        if 'email' in user_data:
+            user.email = user_data['email']
+        if 'first_name' in user_data:
+            user.first_name = user_data['first_name']
+        if 'last_name' in user_data:
+            user.last_name = user_data['last_name']
+            
+        # Update password if provided
+        if 'password' in user_data and user_data['password']:
+            user.set_password(user_data['password'])
+            
+        # Save user
+        user.save()
+        
+        # Update Profile model fields
+        for key, value in profile_data.items():
+            if value is not None:  # Only update if provided
+                setattr(profile, key, value)
+        
+        # Save profile
+        profile.save()
+        
+        # Return updated profile with user data
+        return Response({
+            'id': profile.id,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+            'role': profile.get_role_display(),
+            'date_of_birth': profile.date_of_birth,
+            'gender': profile.gender,
+        })
+        
+    except Profile.DoesNotExist:
+        return Response(
+            {'error': 'Profile not found.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
 # ---------------------------------------- [Image Serving] ----------------------------------------
 
 @api_view(['GET'])

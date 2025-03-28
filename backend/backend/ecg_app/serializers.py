@@ -149,6 +149,14 @@ class RegistrationSerializer(serializers.Serializer):
             'max_length': 'Last name cannot exceed 150 characters.',
         }
     )
+    role = serializers.ChoiceField(
+        choices=['student', 'teacher'],
+        default='student',
+        required=False,
+        error_messages={
+            'invalid_choice': 'Role must be either "student" or "teacher".',
+        }
+    )
     date_of_birth = serializers.DateField(
         required=False,
         allow_null=True,
@@ -191,11 +199,15 @@ class RegistrationSerializer(serializers.Serializer):
                 last_name=validated_data.get('last_name', '')
             )
 
+            # Get role from validated data
+            role = validated_data.get('role', 'student')
+            
             # Create Profile object
             profile = Profile.objects.create(
                 user=user,
                 date_of_birth=validated_data.get('date_of_birth'),
-                gender=validated_data.get('gender')
+                gender=validated_data.get('gender'),
+                role=role
             )
 
             return user
