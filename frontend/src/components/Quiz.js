@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { generateRandomQuiz, submitQuizAnswers, checkAnswer, fetchQuizQuestions } from '../api/quizApi';
+import { getImageUrl } from '../api/axiosInstance';
 import '../styles/Quiz.css';
 
 const Quiz = () => {
@@ -21,6 +22,8 @@ const Quiz = () => {
   const [correctChoiceId, setCorrectChoiceId] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [duration, setDuration] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImageUrl, setModalImageUrl] = useState('');
 
   // Function to shuffle array
   const shuffleArray = (array) => {
@@ -173,6 +176,33 @@ const Quiz = () => {
     }
   };
 
+  // Helper function to get the question text, handling different API response formats
+  const getQuestionText = (question) => {
+    return question.text || question.question_text;
+  };
+
+  // Helper function to get the image URL for an ECG sample
+  const getEcgImageUrl = (question) => {
+    if (question.image_url) {
+      return question.image_url;
+    } else if (question.ecg_sample && question.ecg_sample.sample_path) {
+      return getImageUrl(question.ecg_sample.sample_path + '.png');
+    }
+    return null;
+  };
+
+  // Function to open the image modal
+  const openImageModal = (imageUrl) => {
+    setModalImageUrl(imageUrl);
+    setShowImageModal(true);
+  };
+
+  // Function to close the image modal
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    setModalImageUrl('');
+  };
+
   if (isLoading) {
     return <div className="quiz-container">Generating quiz...</div>;
   }
@@ -249,88 +279,118 @@ const Quiz = () => {
     );
   }
 
-  const renderQuestion = () => {
-    const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
-    const imagePath = currentQuestion.ecg_sample?.sample_path;
-    const imageUrl = imagePath ? `${process.env.REACT_APP_API_BASE_URL}/images/${encodeURIComponent(imagePath + '.png')}` : null;
-
-    return (
-      <div className="question-container">
-        <h3>{currentQuestion.question_text}</h3>
-        
-        {imageUrl && (
-          <div className="ecg-image-container">
-            <img 
-              src={imageUrl} 
-              alt="ECG Sample" 
-              className="ecg-image"
-              onError={(e) => {
-                e.target.onerror = null; // Prevent infinite loop
-                e.target.src = '/placeholder-ecg.png'; // Fallback image
-              }}
-            />
+  const renderOptions = () => {
+    return randomizedChoices.map((choice) => {
+      let optionClass = '';
+      
+      if (isAnswerChecked) {
+        if (choice.id === correctChoiceId) {
+          optionClass = 'correct';
+        } else if (choice.id === currentAnswer) {
+          optionClass = choice.id === correctChoiceId ? 'correct' : 'incorrect';
+        }
+      } else if (choice.id === currentAnswer) {
+        optionClass = 'selected';
+      }
+      
+      return (
+        <button
+          key={choice.id}
+          onClick={() => handleAnswerSelect(selectedQuiz.questions[currentQuestionIndex].id, choice.id)}
+          className={`option-button ${optionClass}`}
+          disabled={isAnswerChecked}
+        >
+          <div className="option-label">
+            <span className="option-marker">{String.fromCharCode(65 + randomizedChoices.indexOf(choice))}</span>
+            {choice.text}
           </div>
-        )}
-        
-        <div className="options-container">
-          {randomizedChoices.map((choice) => (
-            <button
-              key={choice.id}
-              className={`option-button ${
-                currentAnswer === choice.id ? 'selected' : ''
-              } ${
-                isAnswerChecked
-                  ? choice.id === correctChoiceId
-                    ? 'correct'
-                    : currentAnswer === choice.id && choice.id !== correctChoiceId
-                    ? 'incorrect'
-                    : ''
-                  : ''
-              }`}
-              onClick={() => handleAnswerSelect(currentQuestion.id, choice.id)}
-              disabled={isAnswerChecked}
-            >
-              {choice.text}
-            </button>
-          ))}
-        </div>
-
-        <div className="question-actions">
-          {!isAnswerChecked ? (
-            <button
-              className="check-button"
-              onClick={handleCheckAnswer}
-              disabled={!currentAnswer}
-            >
-              Check Answer
-            </button>
-          ) : (
-            <button
-              className="next-button"
-              onClick={handleNext}
-            >
-              {currentQuestionIndex === selectedQuiz.questions.length - 1 ? 'Finish Quiz' : 'Next Question'}
-            </button>
-          )}
-        </div>
-      </div>
-    );
+        </button>
+      );
+    });
   };
 
   return (
     <div className="quiz-container">
-      <div className="quiz-header">
-        <button onClick={() => setSelectedQuiz(null)} className="back-button">
-          Back to Quiz Menu
-        </button>
-        <h2>{selectedQuiz.title}</h2>
-      </div>
+      {showImageModal && (
+        <div className="image-modal" onClick={closeImageModal}>
+          <div className="modal-content">
+            <span className="close-modal" onClick={closeImageModal}>&times;</span>
+            <img 
+              src={modalImageUrl} 
+              alt="ECG Sample (Full Size)" 
+              className="modal-image"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/placeholder-ecg.svg';
+              }}
+            />
+          </div>
+        </div>
+      )}
 
-      <div className="quiz-progress">
-        Question {currentQuestionIndex + 1} of {selectedQuiz.questions.length}
+      <div className="quiz-header">
+        <h2>ECG Quiz</h2>
+        <button onClick={() => navigate('/home')} className="back-button">
+          Back to Home
+        </button>
       </div>
       
-      {renderQuestion()}
+      <div className="quiz-progress">
+        <span>Question {currentQuestionIndex + 1} of {selectedQuiz.questions.length}</span>
+        <span>{isAnswerChecked ? 'Answered' : 'Select an answer'}</span>
+      </div>
+      
+      <div className="progress-bar">
+        <div 
+          className="progress-fill" 
+          style={{ width: `${((currentQuestionIndex + (isAnswerChecked ? 1 : 0)) / selectedQuiz.questions.length) * 100}%` }} 
+        ></div>
+      </div>
+      
+      {(() => {
+        const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
+        const imageUrl = getEcgImageUrl(currentQuestion);
+        return imageUrl ? (
+          <div className="ecg-image-container">
+            <img 
+              src={imageUrl}
+              alt="ECG Sample" 
+              className="ecg-image"
+              onClick={() => openImageModal(imageUrl)}
+              onError={(e) => {
+                e.target.onerror = null; // Prevent infinite loop
+                e.target.src = '/placeholder-ecg.svg'; // Fallback to SVG
+              }}
+            />
+          </div>
+        ) : null;
+      })()}
+      
+      <div className="question-container">
+        <h3>{getQuestionText(selectedQuiz.questions[currentQuestionIndex])}</h3>
+        <div className="options-container">
+          {renderOptions()}
+        </div>
+      </div>
+      
+      <div className="question-actions">
+        {!isAnswerChecked ? (
+          <button 
+            className="check-button" 
+            onClick={handleCheckAnswer}
+            disabled={!currentAnswer}
+          >
+            Check Answer
+          </button>
+        ) : (
+          <button 
+            className="next-button" 
+            onClick={handleNext}
+          >
+            {currentQuestionIndex < selectedQuiz.questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

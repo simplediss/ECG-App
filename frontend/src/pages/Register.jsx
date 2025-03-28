@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/Register.css';
+import '../styles/Login.css'; // Reuse login styles
 
 const Register = () => {
   const navigate = useNavigate();
@@ -16,6 +16,7 @@ const Register = () => {
     gender: ''
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,9 +26,11 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
@@ -60,106 +63,162 @@ const Register = () => {
                           err.response?.data?.errors || 
                           'Registration failed. Please try again.';
       setError(typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <div className="register-form-container">
-        <h2>Create Account</h2>
-        {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Username *</label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-            />
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <div className="auth-logo">
+            <span className="logo-icon">❤️</span>
+            <h1>ECG Master</h1>
+          </div>
+          <h2>Create Account</h2>
+          <p className="auth-subtitle">Fill in your details to get started</p>
+        </div>
+        
+        {error && (
+          <div className="alert alert-danger" role="alert">
+            {error}
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="username" className="form-label">Username *</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                className="form-control"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="Choose a username"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">Email *</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                className="form-control"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Your email address"
+                required
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Email *</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">Password *</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                className="form-control"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword" className="form-label">Confirm Password *</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                className="form-control"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                required
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Password *</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="first_name" className="form-label">First Name</label>
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                className="form-control"
+                value={formData.first_name}
+                onChange={handleChange}
+                placeholder="Your first name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="last_name" className="form-label">Last Name</label>
+              <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                className="form-control"
+                value={formData.last_name}
+                onChange={handleChange}
+                placeholder="Your last name"
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Confirm Password *</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="date_of_birth" className="form-label">Date of Birth</label>
+              <input
+                type="date"
+                id="date_of_birth"
+                name="date_of_birth"
+                className="form-control"
+                value={formData.date_of_birth}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="gender" className="form-label">Gender</label>
+              <select 
+                id="gender"
+                name="gender" 
+                className="form-control"
+                value={formData.gender} 
+                onChange={handleChange}
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>First Name</label>
-            <input
-              type="text"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Last Name</label>
-            <input
-              type="text"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Date of Birth</label>
-            <input
-              type="date"
-              name="date_of_birth"
-              value={formData.date_of_birth}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Gender</label>
-            <select name="gender" value={formData.gender} onChange={handleChange}>
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <button type="submit" className="register-button">
-            Register
+          <button 
+            type="submit" 
+            className="btn btn-primary btn-block"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
-        <p className="login-link">
-          Already have an account? <a href="/login">Login here</a>
-        </p>
+        
+        <div className="auth-footer">
+          <p>
+            Already have an account? <Link to="/login" className="auth-link">Sign in</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
