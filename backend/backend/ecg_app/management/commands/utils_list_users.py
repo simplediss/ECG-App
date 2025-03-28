@@ -1,7 +1,7 @@
 """This command lists all users with their details"""
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from ecg_app.models import Profile, UserStatistics
+from ecg_app.models import Profile
 
 class Command(BaseCommand):
     help = 'Lists all users with their details'
@@ -41,5 +41,3 @@ class Command(BaseCommand):
                 
             except Profile.DoesNotExist:
                 self.stdout.write(self.style.ERROR(f'User {user.username} has no profile.'))
-            except UserStatistics.DoesNotExist:
-                self.stdout.write(self.style.ERROR(f'User {user.username} has no statistics.')) 

@@ -1,7 +1,7 @@
 """This command clears all users from the database"""
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from ecg_app.models import Profile, QuizAttempt, UserStatistics
+from ecg_app.models import Profile, QuizAttempt
 
 class Command(BaseCommand):
     help = "Clear all users from the database"
@@ -10,7 +10,6 @@ class Command(BaseCommand):
         # Delete related data first
         Profile.objects.all().delete()
         QuizAttempt.objects.all().delete()
-        UserStatistics.objects.all().delete()
         
         # Delete all users
         user_count = User.objects.count()

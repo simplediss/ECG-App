@@ -111,14 +111,4 @@ class Migration(migrations.Migration):
                 ('quiz_attempt', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='question_attempts', to='ecg_app.quizattempt')),
             ],
         ),
-        migrations.CreateModel(
-            name='UserStatistics',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('total_quizzes_taken', models.PositiveIntegerField(default=0)),
-                ('total_correct_answers', models.PositiveIntegerField(default=0)),
-                ('total_questions_answered', models.PositiveIntegerField(default=0)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='statistics', to=settings.AUTH_USER_MODEL)),
-            ],
-        ),
     ]

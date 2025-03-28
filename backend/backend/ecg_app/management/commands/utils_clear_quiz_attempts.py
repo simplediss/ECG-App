@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from ecg_app.models import QuizAttempt, QuestionAttempt, UserStatistics
+from ecg_app.models import QuizAttempt, QuestionAttempt
 
 class Command(BaseCommand):
     help = "Delete all quiz attempts and their related data (question attempts)"
@@ -26,12 +26,5 @@ class Command(BaseCommand):
 
         # Delete all quiz attempts (question attempts will be deleted due to CASCADE)
         QuizAttempt.objects.all().delete()
-        
-        # Reset user statistics
-        UserStatistics.objects.all().update(
-            total_quizzes_taken=0,
-            total_correct_answers=0,
-            total_questions_answered=0
-        )
-        
+                
         self.stdout.write(self.style.SUCCESS(f'Successfully deleted {attempt_count} quiz attempts and all related data.')) 
