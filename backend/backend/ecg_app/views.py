@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -16,19 +16,21 @@ from django.conf import settings
 from django.http import FileResponse, Http404
 import os
 import random
+from django.db.models import Q
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
-    User, Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt
+    User, Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, Group, GroupMembership
 )
 from .serializers import (
     EcgSamplesSerializer, EcgDocLabelsSerializer, EcgSnomedSerializer,
     EcgSamplesDocLabelsSerializer, EcgSamplesSnomedSerializer,
     ProfileSerializer, QuizSerializer, QuestionSerializer, ChoiceSerializer,
-    QuizAttemptSerializer, QuestionAttemptSerializer, LoginSerializer, RegistrationSerializer
+    QuizAttemptSerializer, QuestionAttemptSerializer, LoginSerializer, RegistrationSerializer,
+    GroupSerializer, GroupDetailSerializer, GroupMembershipSerializer, GroupMembershipRequestSerializer
 )
 from .quiz_generator import PersonalizedQuizGenerator
-from .permissions import IsTeacher, IsStudent, IsTeacherOrAdmin, IsOwnerOrTeacherOrAdmin
+from .permissions import IsTeacher, IsStudent, IsTeacherOrAdmin, IsOwnerOrTeacherOrAdmin, IsGroupMember, CanManageGroupMembers
 
 ITEMS_PER_PAGE = 50
     
@@ -521,4 +523,72 @@ def serve_ecg_image(request, image_path):
     
     # Serve the file
     return FileResponse(open(full_path, 'rb'), content_type='image/jpeg')
+
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return GroupDetailSerializer
+        return GroupSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Group.objects.all()
+        return Group.objects.filter(
+            Q(teacher=user) |  # Groups owned by the user
+            Q(memberships__student=user, memberships__status='approved')  # Groups where user is a member
+        ).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(teacher=self.request.user)
+
+    def get_permissions(self):
+        if self.action in ['create', 'destroy', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsGroupMember()]
+
+class GroupMembershipViewSet(viewsets.ModelViewSet):
+    queryset = GroupMembership.objects.all()
+    serializer_class = GroupMembershipSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return GroupMembership.objects.all()
+        return GroupMembership.objects.filter(
+            Q(group__teacher=user) |  # Memberships in groups owned by the user
+            Q(student=user)  # User's own memberships
+        ).distinct()
+
+    def get_permissions(self):
+        if self.action in ['create', 'destroy']:
+            return [permissions.IsAuthenticated(), CanManageGroupMembers()]
+        return [permissions.IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user)
+
+class GroupMembershipRequestViewSet(viewsets.ModelViewSet):
+    queryset = GroupMembership.objects.filter(status='pending')
+    serializer_class = GroupMembershipRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return GroupMembership.objects.filter(status='pending')
+        return GroupMembership.objects.filter(
+            Q(group__teacher=user) |  # Pending requests for groups owned by the user
+            Q(student=user)  # User's own pending requests
+        ).filter(status='pending').distinct()
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update']:
+            return [permissions.IsAuthenticated(), CanManageGroupMembers()]
+        return [permissions.IsAuthenticated()]
     
