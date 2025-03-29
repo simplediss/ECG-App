@@ -67,4 +67,9 @@ class CanManageGroupMembers(permissions.BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         # Check if the user is the teacher of the group
-        return request.user.is_authenticated and obj.group.teacher == request.user 
+        if hasattr(obj, 'group'):
+            # If obj is a GroupMembership
+            return request.user.is_authenticated and obj.group.teacher == request.user
+        else:
+            # If obj is a Group
+            return request.user.is_authenticated and obj.teacher == request.user 

@@ -248,17 +248,34 @@ class GroupDetailSerializer(GroupSerializer):
 
 class GroupMembershipSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.username', read_only=True)
+    student_first_name = serializers.CharField(source='student.first_name', read_only=True)
+    student_last_name = serializers.CharField(source='student.last_name', read_only=True)
+    student_email = serializers.CharField(source='student.email', read_only=True)
     group_name = serializers.CharField(source='group.name', read_only=True)
 
     class Meta:
         model = GroupMembership
-        fields = ['id', 'group', 'group_name', 'student', 'student_name', 'status', 'joined_at']
+        fields = [
+            'id', 'group', 'group_name', 'student', 'student_name',
+            'student_first_name', 'student_last_name', 'student_email',
+            'status', 'joined_at'
+        ]
         read_only_fields = ['joined_at']
 
 
 class GroupMembershipRequestSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.username', read_only=True)
+    student_first_name = serializers.CharField(source='student.first_name', read_only=True)
+    student_last_name = serializers.CharField(source='student.last_name', read_only=True)
+    student_email = serializers.CharField(source='student.email', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+
     class Meta:
         model = GroupMembership
-        fields = ['id', 'group', 'status']
+        fields = [
+            'id', 'group', 'group_name', 'student', 'student_name',
+            'student_first_name', 'student_last_name', 'student_email',
+            'status'
+        ]
         read_only_fields = ['status']
 
