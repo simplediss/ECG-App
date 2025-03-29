@@ -1,0 +1,53 @@
+services:
+  database:
+    image: postgres:latest
+    container_name: ecg-database-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: ecg-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    depends_on:
+      - database
+    environment:
+      - DEBUG=${DEBUG}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATASET_SAMPLES_PATH=${DATASET_SAMPLES_PATH}
+      - DATASET_SNOMED_PATH=${DATASET_SNOMED_PATH}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./dataset:/dataset
+    stdin_open: true
+    tty: true
+
+  frontend:
+    container_name: ecg-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    depends_on:
+      - backend
+    ports:
+      - "80:80"  # HTTP (will redirect to HTTPS)
+      - "443:443"  # HTTPS
+    volumes:
+      - ./frontend:/app
+      - ./ssl:/etc/nginx/ssl  # Mount SSL certificates
+
+volumes:
+  db_data:

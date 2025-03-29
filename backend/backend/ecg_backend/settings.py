@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,23 +21,51 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-jf^y!abg_f)=7z#589bn^okb@-qrehuwee%b#4bwjow2%u%=ml'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG').lower() == 'true'
+PROD = not DEBUG
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+if PROD:
+    ALLOWED_HOSTS = ['147.234.32.252', 'sce1.apc.ac']
 
-# CORS settings
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+    # CORS settings
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOWED_ORIGINS = [
+        "https://147.234.32.252",
+        "https://sce1.apc.ac"
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://147.234.32.252",
+        "https://sce1.apc.ac"
+    ]
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+    # CORS settings
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+# Security settings
+if PROD:
+    SECURE_SSL_REDIRECT = False  # Disable as Nginx handles SSL redirect
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Trust Nginx's SSL forwarding
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
@@ -95,8 +124,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'mysecretpassword',
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
         'HOST': 'database',
         'PORT': '5432',
     }
@@ -126,11 +155,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
+TIME_ZONE = 'Asia/Jerusalem'
+USE_I18N = False
 USE_TZ = True
 
 

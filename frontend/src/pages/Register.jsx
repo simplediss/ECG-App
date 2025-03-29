@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Login.css'; // Reuse login styles
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -48,7 +50,7 @@ const Register = () => {
       userData.append('date_of_birth', formData.date_of_birth);
       userData.append('gender', formData.gender);
 
-      const response = await axios.post('http://localhost:8000/api/register/', userData, {
+      const response = await axios.post(`${API_BASE_URL}/register/`, userData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
