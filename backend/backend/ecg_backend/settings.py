@@ -26,19 +26,32 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '147.234.32.252']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '147.234.32.252', 'sce1.apc.ac']
+
+# Security settings
+SECURE_SSL_REDIRECT = False  # Disable as Nginx handles SSL redirect
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Trust Nginx's SSL forwarding
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 # CORS settings
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://147.234.32.252",
+    "https://localhost:3000",
+    "https://127.0.0.1:3000",
+    "https://147.234.32.252",
+    "https://sce1.apc.ac"
 ]
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://147.234.32.252",
+    "https://localhost:3000",
+    "https://127.0.0.1:3000",
+    "https://147.234.32.252",
+    "https://sce1.apc.ac"
 ]
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'

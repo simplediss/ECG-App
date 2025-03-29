@@ -45,7 +45,11 @@ services:
       - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
       - WDS_SOCKET_PORT=${WDS_SOCKET_PORT}
     ports:
-      - "80:80"  # Serving with Nginx on port 80
+      - "80:80"  # HTTP (will redirect to HTTPS)
+      - "443:443"  # HTTPS
+    volumes:
+      - ./frontend:/app
+      - ./ssl:/etc/nginx/ssl  # Mount SSL certificates
 
 volumes:
   db_data:

@@ -106,3 +106,5 @@ eggs/
 *.bak
 ~$*
 
+# SSL certificates
+ssl/
