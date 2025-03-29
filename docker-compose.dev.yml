@@ -18,10 +18,13 @@ services:
     depends_on:
       - database
     environment:
-      - DATABASE_URL=postgres://postgres:mysecretpassword@database:5432/postgres
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
       - DATASET_SAMPLES_PATH=/dataset/samples_dev  # directory with ECG samples
       - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
-      - DEBUG=True
     ports:
       - "8000:8000"
     volumes:
