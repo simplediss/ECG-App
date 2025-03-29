@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN rm requirements.txt
 
 # Set entrypoint
-ENTRYPOINT ["sh", "-c", "./start_backend.sh"]
+ENTRYPOINT ["sh", "-c", "./start_backend.prod.sh"]

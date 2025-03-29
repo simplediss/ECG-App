@@ -14,6 +14,7 @@ services:
     container_name: ecg-backend
     build:
       context: ./backend
+      dockerfile: Dockerfile.prod
     depends_on:
       - database
     environment:
@@ -38,12 +39,9 @@ services:
     container_name: ecg-frontend
     build:
       context: ./frontend
+      dockerfile: Dockerfile.prod
     depends_on:
       - backend
-    environment:
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
-      - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
-      - WDS_SOCKET_PORT=${WDS_SOCKET_PORT}
     ports:
       - "80:80"  # HTTP (will redirect to HTTPS)
       - "443:443"  # HTTPS
