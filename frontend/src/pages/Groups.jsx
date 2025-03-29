@@ -170,8 +170,6 @@ const Groups = () => {
     try {
       await axios.post(`/api/groups/${groupId}/join_request/`);
       fetchGroups();
-      fetchMyGroups();
-      fetchMyPendingRequests(); // Add this to refresh pending requests immediately
       setSuccess('Join request sent successfully');
     } catch (err) {
       setError('Failed to send join request');
@@ -217,29 +215,6 @@ const Groups = () => {
       console.error('Error removing user:', err);
     }
   };
-
-  // Add periodic refresh for students
-  useEffect(() => {
-    let interval;
-    if (user.profile?.role === 'student') {
-      // Initial fetch
-      fetchMyGroups();
-      fetchMyPendingRequests();
-      
-      // Set up periodic refresh every 5 seconds
-      interval = setInterval(() => {
-        fetchMyGroups();
-        fetchMyPendingRequests();
-      }, 5000);
-    }
-    
-    // Cleanup interval on component unmount
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [user.profile?.role]);
 
   const renderGroupMembersTable = (groupId) => {
     const members = groupMembers[groupId] || [];
