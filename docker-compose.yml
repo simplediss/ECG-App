@@ -17,10 +17,13 @@ services:
     depends_on:
       - database
     environment:
+      - DEBUG=${DEBUG}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DATABASE_USER=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_URL=${DATABASE_URL}
       - DATASET_SAMPLES_PATH=${DATASET_SAMPLES_PATH}
       - DATASET_SNOMED_PATH=${DATASET_SNOMED_PATH}
-      - DEBUG=${DEBUG}
     ports:
       - "8000:8000"
     volumes:
