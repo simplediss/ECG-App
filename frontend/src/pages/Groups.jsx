@@ -381,50 +381,52 @@ const Groups = () => {
         ))}
       </List>
 
-      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-        Available Groups
-      </Typography>
-      <List>
-        {groups
-          .filter((group) => !myGroups.some((myGroup) => myGroup.id === group.id))
-          .map((group) => (
-            <Card key={group.id} sx={{ mb: 2 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <Typography variant="h6">{group.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Created by: {group.teacher_name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Members: {group.member_count}
-                    </Typography>
-                  </div>
-                  {user.profile?.role === 'student' && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {myPendingRequests.includes(group.id) ? (
-                        <Chip
-                          icon={<PendingIcon />}
-                          label="Request Pending"
-                          color="warning"
-                          variant="outlined"
-                        />
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          startIcon={<PersonAddIcon />}
-                          onClick={() => handleJoinRequest(group.id)}
-                        >
-                          Request to Join
-                        </Button>
-                      )}
+      {user.profile?.role === 'student' && (
+        <>
+          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+            Available Groups
+          </Typography>
+          <List>
+            {groups
+              .filter((group) => !myGroups.some((myGroup) => myGroup.id === group.id))
+              .map((group) => (
+                <Card key={group.id} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <Typography variant="h6">{group.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Created by: {group.teacher_name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Members: {group.member_count}
+                        </Typography>
+                      </div>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {myPendingRequests.includes(group.id) ? (
+                          <Chip
+                            icon={<PendingIcon />}
+                            label="Request Pending"
+                            color="warning"
+                            variant="outlined"
+                          />
+                        ) : (
+                          <Button
+                            variant="outlined"
+                            startIcon={<PersonAddIcon />}
+                            onClick={() => handleJoinRequest(group.id)}
+                          >
+                            Request to Join
+                          </Button>
+                        )}
+                      </Box>
                     </Box>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
-      </List>
+                  </CardContent>
+                </Card>
+              ))}
+          </List>
+        </>
+      )}
 
       <Dialog open={openCreateDialog} onClose={() => setOpenCreateDialog(false)}>
         <DialogTitle>Create New Group</DialogTitle>
