@@ -20,7 +20,7 @@ services:
       - DATABASE_URL=postgres://postgres:mysecretpassword@database:5432/postgres
       - DATASET_SAMPLES_PATH=/dataset/samples_dev  # directory with ECG samples
       - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
-      - DEBUG=True
+      - DEBUG=False
     ports:
       - "8000:8000"
     volumes:
@@ -33,18 +33,14 @@ services:
     container_name: ecg-frontend
     build:
       context: ./frontend
+    depends_on:
+      - backend
     environment:
-      - REACT_APP_API_BASE_URL=http://localhost:8000/api
+      - REACT_APP_API_BASE_URL=/api
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_PORT=0
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/build
-    stdin_open: true
-    tty: true
+      - "80:80"  # Serving with Nginx on port 80
 
 volumes:
   db_data:
