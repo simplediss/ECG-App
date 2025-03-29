@@ -3,8 +3,8 @@ services:
     image: postgres:latest
     container_name: ecg-database-postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -17,10 +17,10 @@ services:
     depends_on:
       - database
     environment:
-      - DATABASE_URL=postgres://postgres:mysecretpassword@database:5432/postgres
-      - DATASET_SAMPLES_PATH=/dataset/samples_dev  # directory with ECG samples
-      - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
-      - DEBUG=False
+      - DATABASE_URL=${DATABASE_URL}
+      - DATASET_SAMPLES_PATH=${DATASET_SAMPLES_PATH}
+      - DATASET_SNOMED_PATH=${DATASET_SNOMED_PATH}
+      - DEBUG=${DEBUG}
     ports:
       - "8000:8000"
     volumes:
@@ -36,9 +36,9 @@ services:
     depends_on:
       - backend
     environment:
-      - REACT_APP_API_BASE_URL=/api
-      - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+      - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
+      - WDS_SOCKET_PORT=${WDS_SOCKET_PORT}
     ports:
       - "80:80"  # Serving with Nginx on port 80
 
