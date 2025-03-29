@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "ECGenius",
+  "name": "ECGenius - ECG Learning Platform",
   "icons": [
     {
       "src": "favicon.ico",
