@@ -240,7 +240,8 @@ class GroupDetailSerializer(GroupSerializer):
         request = self.context.get('request')
         if request and obj.teacher == request.user:
             # Teachers can see all members
-            return UserSerializer(obj.memberships.filter(status='approved').select_related('student').values_list('student', flat=True), many=True).data
+            members = obj.memberships.filter(status='approved').select_related('student')
+            return UserSerializer([membership.student for membership in members], many=True).data
         else:
             # Students can only see themselves
             return UserSerializer([request.user], many=True).data

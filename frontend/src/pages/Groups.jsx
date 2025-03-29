@@ -55,6 +55,7 @@ const Groups = () => {
   const [success, setSuccess] = useState('');
   const [pendingRequests, setPendingRequests] = useState({});
   const [myPendingRequests, setMyPendingRequests] = useState([]);
+  const [groupMembers, setGroupMembers] = useState({});
 
   const fetchGroups = async () => {
     try {
@@ -106,12 +107,36 @@ const Groups = () => {
     }
   };
 
+  const fetchGroupMembers = async (groupId) => {
+    try {
+      const response = await axios.get(`/api/groups/${groupId}/`);
+      setGroupMembers(prev => {
+        const newState = {
+          ...prev,
+          [groupId]: response.data.members
+        };
+        return newState;
+      });
+    } catch (err) {
+      console.error('Error fetching group members:', err);
+    }
+  };
+
   useEffect(() => {
     fetchGroups();
     fetchMyGroups();
     fetchPendingRequests();
     fetchMyPendingRequests();
   }, [user.profile?.role]);
+
+  // Separate useEffect for fetching group members
+  useEffect(() => {
+    if (user.profile?.role === 'teacher' && myGroups.length > 0) {
+      myGroups.forEach(group => {
+        fetchGroupMembers(group.id);
+      });
+    }
+  }, [myGroups, user.profile?.role]);
 
   const handleCreateGroup = async () => {
     try {
@@ -145,6 +170,8 @@ const Groups = () => {
     try {
       await axios.post(`/api/groups/${groupId}/join_request/`);
       fetchGroups();
+      fetchMyGroups();
+      fetchMyPendingRequests(); // Add this to refresh pending requests immediately
       setSuccess('Join request sent successfully');
     } catch (err) {
       setError('Failed to send join request');
@@ -154,11 +181,11 @@ const Groups = () => {
 
   const handleApproveRequest = async (groupId, requestId) => {
     try {
-      console.log('Approving request:', { groupId, requestId }); // Debug log
       await axios.post(`/api/groups/${groupId}/approve_request/`, { request_id: requestId });
       fetchGroups();
       fetchMyGroups();
       fetchPendingRequests(); // Add this to refresh the pending requests
+      fetchGroupMembers(groupId); // Refresh the members list
       setSuccess('Request approved successfully');
     } catch (err) {
       console.error('Error approving request:', err.response?.data || err); // Enhanced error logging
@@ -170,6 +197,7 @@ const Groups = () => {
     try {
       await axios.post(`/api/groups/${groupId}/reject_request/`, { request_id: requestId });
       fetchGroups();
+      fetchPendingRequests(); // Refresh pending requests
       setSuccess('Request rejected successfully');
     } catch (err) {
       setError('Failed to reject request');
@@ -182,11 +210,82 @@ const Groups = () => {
       await axios.post(`/api/groups/${groupId}/remove_user/`, { user_id: userId });
       fetchGroups();
       fetchMyGroups();
+      fetchGroupMembers(groupId); // Refresh the members list
       setSuccess('User removed successfully');
     } catch (err) {
       setError('Failed to remove user');
       console.error('Error removing user:', err);
     }
+  };
+
+  // Add periodic refresh for students
+  useEffect(() => {
+    let interval;
+    if (user.profile?.role === 'student') {
+      // Initial fetch
+      fetchMyGroups();
+      fetchMyPendingRequests();
+      
+      // Set up periodic refresh every 5 seconds
+      interval = setInterval(() => {
+        fetchMyGroups();
+        fetchMyPendingRequests();
+      }, 5000);
+    }
+    
+    // Cleanup interval on component unmount
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [user.profile?.role]);
+
+  const renderGroupMembersTable = (groupId) => {
+    const members = groupMembers[groupId] || [];
+    if (!members || members.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+          No members in this group
+        </Typography>
+      );
+    }
+
+    return (
+      <TableContainer component={Paper} sx={{ mt: 2, mb: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Username</TableCell>
+              <TableCell>Full Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {members.map((member) => (
+              <TableRow key={member.id}>
+                <TableCell>{member.username}</TableCell>
+                <TableCell>
+                  {member.first_name} {member.last_name}
+                </TableCell>
+                <TableCell>{member.email}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => handleRemoveUser(groupId, member.id)}
+                    title="Remove from group"
+                  >
+                    <PersonRemoveIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
   };
 
   const renderPendingRequestsTable = (groupId) => {
@@ -281,6 +380,10 @@ const Groups = () => {
               {user.profile?.role === 'teacher' && group.teacher === user.id && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Group Members
+                  </Typography>
+                  {renderGroupMembersTable(group.id)}
+                  <Typography variant="subtitle2" sx={{ mb: 1, mt: 2 }}>
                     Pending Requests
                   </Typography>
                   {renderPendingRequestsTable(group.id)}
