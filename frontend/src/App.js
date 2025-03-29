@@ -9,6 +9,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import Quiz from './components/Quiz';
 import QuizHistory from './pages/QuizHistory';
+import Groups from './pages/Groups';
 import Navbar from './components/Navbar';
 import './App.css';
 
@@ -97,6 +98,14 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <QuizHistory />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/groups"
+          element={
+            <PrivateRoute>
+              <Groups />
             </PrivateRoute>
           }
         />

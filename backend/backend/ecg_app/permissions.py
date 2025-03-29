@@ -40,4 +40,36 @@ class IsOwnerOrTeacherOrAdmin(permissions.BasePermission):
         # Students can only access their own objects
         if hasattr(obj, 'user'):
             return obj.user == request.user
-        return False 
+        return False
+
+class IsGroupTeacher(permissions.BasePermission):
+    """
+    Custom permission to only allow teachers of a group to edit it.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Check if the user is a teacher and owns the group
+        return request.user.is_authenticated and obj.teacher == request.user
+
+class IsGroupMember(permissions.BasePermission):
+    """
+    Custom permission to only allow members of a group to view it.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Check if the user is a member of the group
+        return request.user.is_authenticated and obj.memberships.filter(
+            student=request.user,
+            status='approved'
+        ).exists()
+
+class CanManageGroupMembers(permissions.BasePermission):
+    """
+    Custom permission to only allow teachers to manage group members.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Check if the user is the teacher of the group
+        if hasattr(obj, 'group'):
+            # If obj is a GroupMembership
+            return request.user.is_authenticated and obj.group.teacher == request.user
+        else:
+            # If obj is a Group
+            return request.user.is_authenticated and obj.teacher == request.user 

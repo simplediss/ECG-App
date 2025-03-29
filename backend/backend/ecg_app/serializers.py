@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
-from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt
+from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, Group, GroupMembership
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -215,4 +215,68 @@ class RegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError({
                 'error': str(e)
             })
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.CharField(source='teacher.username', read_only=True)
+    member_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Group
+        fields = ['id', 'name', 'description', 'teacher', 'teacher_name', 'created_at', 'member_count']
+        read_only_fields = ['teacher', 'created_at']
+
+    def get_member_count(self, obj):
+        return obj.memberships.filter(status='approved').count()
+
+
+class GroupDetailSerializer(GroupSerializer):
+    members = serializers.SerializerMethodField()
+
+    class Meta(GroupSerializer.Meta):
+        fields = GroupSerializer.Meta.fields + ['members']
+
+    def get_members(self, obj):
+        request = self.context.get('request')
+        if request and obj.teacher == request.user:
+            # Teachers can see all members
+            members = obj.memberships.filter(status='approved').select_related('student')
+            return UserSerializer([membership.student for membership in members], many=True).data
+        else:
+            # Students can only see themselves
+            return UserSerializer([request.user], many=True).data
+
+
+class GroupMembershipSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.username', read_only=True)
+    student_first_name = serializers.CharField(source='student.first_name', read_only=True)
+    student_last_name = serializers.CharField(source='student.last_name', read_only=True)
+    student_email = serializers.CharField(source='student.email', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+
+    class Meta:
+        model = GroupMembership
+        fields = [
+            'id', 'group', 'group_name', 'student', 'student_name',
+            'student_first_name', 'student_last_name', 'student_email',
+            'status', 'joined_at'
+        ]
+        read_only_fields = ['joined_at']
+
+
+class GroupMembershipRequestSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.username', read_only=True)
+    student_first_name = serializers.CharField(source='student.first_name', read_only=True)
+    student_last_name = serializers.CharField(source='student.last_name', read_only=True)
+    student_email = serializers.CharField(source='student.email', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+
+    class Meta:
+        model = GroupMembership
+        fields = [
+            'id', 'group', 'group_name', 'student', 'student_name',
+            'student_first_name', 'student_last_name', 'student_email',
+            'status'
+        ]
+        read_only_fields = ['status']
 

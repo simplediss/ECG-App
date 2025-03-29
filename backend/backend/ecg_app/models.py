@@ -144,3 +144,38 @@ class QuestionAttempt(models.Model):
 
     def __str__(self):
         return f"Attempt for Question {self.question.id} in {self.quiz_attempt}"
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_groups')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} - {self.teacher.username}"
+
+
+class GroupMembership(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='memberships')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_memberships')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    joined_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['group', 'student']
+        ordering = ['-joined_at']
+
+    def __str__(self):
+        return f"{self.student.username} - {self.group.name} ({self.status})"

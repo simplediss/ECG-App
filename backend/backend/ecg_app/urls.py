@@ -20,6 +20,9 @@ router.register(r'questions', views.QuestionViewSet, basename='questions')
 router.register(r'choices', views.ChoiceViewSet, basename='choices')
 router.register(r'quiz-attempts', views.QuizAttemptViewSet, basename='quiz-attempts')
 router.register(r'question-attempts', views.QuestionAttemptViewSet, basename='question-attempts')
+router.register(r'groups', views.GroupViewSet, basename='group')
+router.register(r'group-memberships', views.GroupMembershipViewSet, basename='group-membership')
+router.register(r'group-requests', views.GroupMembershipRequestViewSet, basename='group-request')
 
 
 urlpatterns = [
