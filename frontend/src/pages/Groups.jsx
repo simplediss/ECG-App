@@ -40,8 +40,9 @@ import {
 } from '@mui/icons-material';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:8000';
-axios.defaults.withCredentials = true;
+// axios.defaults.baseURL = 'http://localhost:8000';
+// axios.defaults.withCredentials = true;
+// TODO use axiosInstance
 
 const Groups = () => {
   const { user } = useAuth();
