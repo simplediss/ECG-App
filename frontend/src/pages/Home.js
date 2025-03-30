@@ -44,11 +44,11 @@ const Home = () => {
             </div>
           )}
           
-          <div className="feature-card" onClick={() => navigate('/quiz-history')}>
-            <div className="card-icon">📊</div>
-            <h3>View History</h3>
-            <p>Review your past quiz attempts and track your progress</p>
-            <button className="btn btn-primary">See History</button>
+          <div className="feature-card" onClick={() => navigate('/groups')}>
+            <div className="card-icon">👥</div>
+            <h3>Groups</h3>
+            <p>Study groups allows collaborate with other students</p>
+            <button className="btn btn-primary">View Groups</button>
           </div>
           
           {user.is_staff && (
@@ -68,27 +68,6 @@ const Home = () => {
               <button className="btn btn-primary">Go to Dashboard</button>
             </div>
           )}
-        </div>
-      </section>
-
-      <section className="section">
-        <h2 className="section-title">Learning Resources</h2>
-        <div className="resources-container">
-          <div className="resource-card">
-            <h3>ECG Basics</h3>
-            <p>Learn the fundamentals of ECG interpretation and cardiac rhythm analysis</p>
-            <a href="#" className="resource-link">View Resources →</a>
-          </div>
-          <div className="resource-card">
-            <h3>Practice Materials</h3>
-            <p>Access additional practice materials to strengthen your skills</p>
-            <a href="#" className="resource-link">Explore Materials →</a>
-          </div>
-          <div className="resource-card">
-            <h3>Latest Updates</h3>
-            <p>Stay current with the latest platform updates and new features</p>
-            <a href="#" className="resource-link">View Updates →</a>
-          </div>
         </div>
       </section>
     </div>
