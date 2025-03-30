@@ -70,27 +70,6 @@ const Home = () => {
           )}
         </div>
       </section>
-
-      <section className="section">
-        <h2 className="section-title">Learning Resources</h2>
-        <div className="resources-container">
-          <div className="resource-card">
-            <h3>ECG Basics</h3>
-            <p>Learn the fundamentals of ECG interpretation and cardiac rhythm analysis</p>
-            <a href="#" className="resource-link">View Resources →</a>
-          </div>
-          <div className="resource-card">
-            <h3>Practice Materials</h3>
-            <p>Access additional practice materials to strengthen your skills</p>
-            <a href="#" className="resource-link">Explore Materials →</a>
-          </div>
-          <div className="resource-card">
-            <h3>Latest Updates</h3>
-            <p>Stay current with the latest platform updates and new features</p>
-            <a href="#" className="resource-link">View Updates →</a>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
