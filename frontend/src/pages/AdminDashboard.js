@@ -13,7 +13,6 @@ const AdminDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [filterBy, setFilterBy] = useState('all');
-    const [timeRange, setTimeRange] = useState('all');
     const [activeSection, setActiveSection] = useState('admin');
     const [activeFeature, setActiveFeature] = useState(null);
 
@@ -26,7 +25,7 @@ const AdminDashboard = () => {
         if (selectedStudent) {
             fetchStudentStats(selectedStudent.id);
         }
-    }, [selectedStudent, timeRange]);
+    }, [selectedStudent]);
 
     const fetchStudents = async () => {
         try {
@@ -57,16 +56,6 @@ const AdminDashboard = () => {
         try {
             let studentAttempts = quizAttempts.filter(attempt => attempt.user?.id === selectedStudent.user.id);
             
-            // Apply time range filter
-            if (timeRange !== 'all') {
-                const now = new Date();
-                const daysAgo = parseInt(timeRange);
-                studentAttempts = studentAttempts.filter(attempt => {
-                    const attemptDate = new Date(attempt.completed_at);
-                    return (now - attemptDate) <= (daysAgo * 24 * 60 * 60 * 1000);
-                });
-            }
-
             const stats = {
                 totalAttempts: studentAttempts.length,
                 averageScore: studentAttempts.reduce((acc, attempt) => acc + attempt.score, 0) / studentAttempts.length || 0,
@@ -235,12 +224,6 @@ const AdminDashboard = () => {
                                 <option value="name">Sort by Name</option>
                                 <option value="attempts">Sort by Attempts</option>
                                 <option value="score">Sort by Average Score</option>
-                            </select>
-                            <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
-                                <option value="all">All Time</option>
-                                <option value="7">Last 7 Days</option>
-                                <option value="30">Last 30 Days</option>
-                                <option value="90">Last 90 Days</option>
                             </select>
                         </div>
                     </div>

@@ -44,11 +44,11 @@ const Home = () => {
             </div>
           )}
           
-          <div className="feature-card" onClick={() => navigate('/quiz-history')}>
-            <div className="card-icon">📊</div>
-            <h3>View History</h3>
-            <p>Review your past quiz attempts and track your progress</p>
-            <button className="btn btn-primary">See History</button>
+          <div className="feature-card" onClick={() => navigate('/groups')}>
+            <div className="card-icon">👥</div>
+            <h3>Groups</h3>
+            <p>Study groups allows collaborate with other students</p>
+            <button className="btn btn-primary">View Groups</button>
           </div>
           
           {user.is_staff && (
