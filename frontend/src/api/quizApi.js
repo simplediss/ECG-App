@@ -51,4 +51,14 @@ export const generateRandomQuiz = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+// Get a specific quiz attempt
+export const fetchQuizAttempt = async (attemptId) => {
+  try {
+    const response = await axiosInstance.get(`quiz-attempts/${attemptId}/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }; 

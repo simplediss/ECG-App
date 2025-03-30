@@ -1,12 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 
 const AuthContext = createContext(null);
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-
-// Configure axios defaults
-axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -14,11 +9,11 @@ export const AuthProvider = ({ children }) => {
 
   const getCsrfToken = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/auth/csrf/`, {
+      const response = await axiosInstance.get(`/auth/csrf/`, {
         withCredentials: true
       });
       // Set the CSRF token in axios defaults
-      axios.defaults.headers.common['X-CSRFToken'] = response.data.csrfToken;
+      axiosInstance.defaults.headers.common['X-CSRFToken'] = response.data.csrfToken;
       return response.data.csrfToken;
     } catch (error) {
       console.error('Failed to get CSRF token:', error);
@@ -33,7 +28,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkUserStatus = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/auth/user-status/`, {
+      const response = await axiosInstance.get(`/auth/user-status/`, {
         withCredentials: true
       });
       setUser(response.data.user);
@@ -49,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       // Get a fresh CSRF token before login
       const csrfToken = await getCsrfToken();
       
-      const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
+      const response = await axiosInstance.post(`/auth/login/`, {
         username,
         password
       }, {
@@ -63,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       // Get a fresh CSRF token after successful login
       const newCsrfToken = await getCsrfToken();
       if (newCsrfToken) {
-        axios.defaults.headers.common['X-CSRFToken'] = newCsrfToken;
+        axiosInstance.defaults.headers.common['X-CSRFToken'] = newCsrfToken;
       }
 
       // Set the user data
@@ -84,7 +79,7 @@ export const AuthProvider = ({ children }) => {
       // Get a fresh CSRF token before logout
       const csrfToken = await getCsrfToken();
       
-      await axios.post(`${API_BASE_URL}/auth/logout/`, {}, {
+      await axiosInstance.post(`/auth/logout/`, {}, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +88,7 @@ export const AuthProvider = ({ children }) => {
       });
       
       // Clear the CSRF token from axios defaults
-      delete axios.defaults.headers.common['X-CSRFToken'];
+      delete axiosInstance.defaults.headers.common['X-CSRFToken'];
       setUser(null);
       return true;
     } catch (error) {

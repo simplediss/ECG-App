@@ -138,6 +138,12 @@ const Navbar = () => {
                 </Link>
               </li>
             )}
+            
+            <li className="nav-item">
+              <Link to="/groups" className={`nav-link ${isActive('/groups')}`}>
+                Groups
+              </Link>
+            </li>
           </ul>
           
           <div className="navbar-right">
