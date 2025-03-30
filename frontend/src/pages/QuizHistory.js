@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuizHistory } from '../api/quizApi';
+import { useAuth } from '../context/AuthContext';
 import '../styles/QuizHistory.css';
 
 const QuizHistory = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [quizHistory, setQuizHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,6 +65,8 @@ const QuizHistory = () => {
     return <div className="quiz-history-container error">{error}</div>;
   }
 
+  const isTeacher = user?.profile?.role === 'teacher';
+
   return (
     <div className="quiz-history-container">
       <div className="quiz-history-header">
@@ -72,9 +76,11 @@ const QuizHistory = () => {
       {quizHistory.length === 0 ? (
         <div className="no-history">
           <p>You haven't taken any quizzes yet.</p>
-          <button onClick={() => navigate('/quiz')} className="primary-button">
-            Take a Quiz
-          </button>
+          {!isTeacher && (
+            <button onClick={() => navigate('/quiz')} className="primary-button">
+              Take a Quiz
+            </button>
+          )}
         </div>
       ) : (
         <div className="quiz-history-table">
@@ -82,6 +88,7 @@ const QuizHistory = () => {
             <thead>
               <tr>
                 <th>Quiz</th>
+                <th>Student</th>
                 <th>Date</th>
                 <th>Score</th>
                 <th>Correct</th>
@@ -93,17 +100,27 @@ const QuizHistory = () => {
               {quizHistory.map((attempt) => (
                 <tr key={attempt.id}>
                   <td>{attempt.quiz?.title || 'Untitled Quiz'}</td>
+                  <td>{attempt.user?.username || 'Unknown Student'}</td>
                   <td>{attempt.completed_at ? formatDate(attempt.completed_at) : 'In Progress'}</td>
                   <td>{formatScore(attempt.score)}</td>
                   <td>{attempt.correct_answers || 0}</td>
                   <td>{attempt.total_questions || 0}</td>
                   <td>
-                    <button
-                      onClick={() => navigate('/quiz', { state: { retakeQuizId: attempt.quiz?.id } })}
-                      className="retake-button"
-                    >
-                      Retake Quiz
-                    </button>
+                    {isTeacher ? (
+                      <button
+                        onClick={() => navigate(`/quiz-review/${attempt.id}`)}
+                        className="review-button"
+                      >
+                        Review Quiz
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => navigate('/quiz', { state: { retakeQuizId: attempt.quiz?.id } })}
+                        className="retake-button"
+                      >
+                        Retake Quiz
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

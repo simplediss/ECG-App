@@ -53,7 +53,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
-        fields = ['id', 'text']
+        fields = ['id', 'text', 'is_correct']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -73,16 +73,26 @@ class QuizSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'created_at', 'questions']
 
 
+class QuestionAttemptSerializer(serializers.ModelSerializer):
+    question = QuestionSerializer(read_only=True)
+    selected_choice = ChoiceSerializer(read_only=True)
+    
+    class Meta:
+        model = QuestionAttempt
+        fields = ['id', 'question', 'selected_choice', 'is_correct']
+
+
 class QuizAttemptSerializer(serializers.ModelSerializer):
     quiz = QuizSerializer()  # Nested serializer for quiz details
     user = UserSerializer()  # Add user serializer
+    question_attempts = QuestionAttemptSerializer(many=True, read_only=True)
     score = serializers.SerializerMethodField()
     correct_answers = serializers.SerializerMethodField()
     total_questions = serializers.SerializerMethodField()
 
     class Meta:
         model = QuizAttempt
-        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions']
+        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions', 'question_attempts']
 
     def get_score(self, obj):
         question_attempts = obj.question_attempts.all()
@@ -97,12 +107,6 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
 
     def get_total_questions(self, obj):
         return obj.question_attempts.count()
-
-
-class QuestionAttemptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = QuestionAttempt
-        fields = '__all__'
 
 
 class LoginSerializer(serializers.Serializer):
