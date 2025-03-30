@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance';
 import {
   Box,
   Button,
@@ -14,13 +14,9 @@ import {
   TextField,
   Typography,
   List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Chip,
   Alert,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -39,10 +35,6 @@ import {
   PendingOutlined as PendingIcon,
 } from '@mui/icons-material';
 
-// Configure axios defaults
-// axios.defaults.baseURL = 'http://localhost:8000';
-// axios.defaults.withCredentials = true;
-// TODO use axiosInstance
 
 const Groups = () => {
   const { user } = useAuth();
@@ -60,7 +52,7 @@ const Groups = () => {
 
   const fetchGroups = async () => {
     try {
-      const response = await axios.get('/api/groups/');
+      const response = await axiosInstance.get('/groups/');
       setGroups(response.data);
     } catch (err) {
       setError('Failed to fetch groups');
@@ -70,7 +62,7 @@ const Groups = () => {
 
   const fetchMyGroups = async () => {
     try {
-      const response = await axios.get('/api/groups/my_groups/');
+      const response = await axiosInstance.get('/groups/my_groups/');
       setMyGroups(response.data);
     } catch (err) {
       setError('Failed to fetch your groups');
@@ -81,7 +73,7 @@ const Groups = () => {
   const fetchPendingRequests = async () => {
     if (user.profile?.role === 'teacher') {
       try {
-        const response = await axios.get('/api/group-requests/');
+        const response = await axiosInstance.get('/group-requests/');
         // Organize requests by group ID
         const requestsByGroup = {};
         response.data.forEach(request => {
@@ -100,7 +92,7 @@ const Groups = () => {
   const fetchMyPendingRequests = async () => {
     if (user.profile?.role === 'student') {
       try {
-        const response = await axios.get('/api/group-requests/');
+        const response = await axiosInstance.get('/group-requests/');
         setMyPendingRequests(response.data.map(request => request.group));
       } catch (err) {
         console.error('Error fetching my pending requests:', err);
@@ -110,7 +102,7 @@ const Groups = () => {
 
   const fetchGroupMembers = async (groupId) => {
     try {
-      const response = await axios.get(`/api/groups/${groupId}/`);
+      const response = await axiosInstance.get(`/groups/${groupId}/`);
       setGroupMembers(prev => {
         const newState = {
           ...prev,
@@ -141,7 +133,7 @@ const Groups = () => {
 
   const handleCreateGroup = async () => {
     try {
-      await axios.post('/api/groups/', { name: newGroupName });
+      await axiosInstance.post('/groups/', { name: newGroupName });
       setNewGroupName('');
       setOpenCreateDialog(false);
       fetchGroups();
@@ -155,7 +147,7 @@ const Groups = () => {
 
   const handleDeleteGroup = async (groupId) => {
     try {
-      await axios.delete(`/api/groups/${groupId}/`);
+      await axiosInstance.delete(`/groups/${groupId}/`);
       fetchGroups();
       fetchMyGroups();
       setSuccess('Group deleted successfully');
@@ -169,7 +161,7 @@ const Groups = () => {
 
   const handleJoinRequest = async (groupId) => {
     try {
-      await axios.post(`/api/groups/${groupId}/join_request/`);
+      await axiosInstance.post(`/groups/${groupId}/join_request/`);
       fetchGroups();
       setSuccess('Join request sent successfully');
     } catch (err) {
@@ -180,7 +172,7 @@ const Groups = () => {
 
   const handleApproveRequest = async (groupId, requestId) => {
     try {
-      await axios.post(`/api/groups/${groupId}/approve_request/`, { request_id: requestId });
+      await axiosInstance.post(`/groups/${groupId}/approve_request/`, { request_id: requestId });
       fetchGroups();
       fetchMyGroups();
       fetchPendingRequests(); // Add this to refresh the pending requests
@@ -194,7 +186,7 @@ const Groups = () => {
 
   const handleRejectRequest = async (groupId, requestId) => {
     try {
-      await axios.post(`/api/groups/${groupId}/reject_request/`, { request_id: requestId });
+      await axiosInstance.post(`/groups/${groupId}/reject_request/`, { request_id: requestId });
       fetchGroups();
       fetchPendingRequests(); // Refresh pending requests
       setSuccess('Request rejected successfully');
@@ -206,7 +198,7 @@ const Groups = () => {
 
   const handleRemoveUser = async (groupId, userId) => {
     try {
-      await axios.post(`/api/groups/${groupId}/remove_user/`, { user_id: userId });
+      await axiosInstance.post(`/groups/${groupId}/remove_user/`, { user_id: userId });
       fetchGroups();
       fetchMyGroups();
       fetchGroupMembers(groupId); // Refresh the members list
