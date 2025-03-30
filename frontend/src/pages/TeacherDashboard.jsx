@@ -116,6 +116,16 @@ const TeacherDashboard = () => {
     return new Date(lastAttempt.completed_at);
   };
 
+  const getAverageScore = (userId) => {
+    const userAttempts = quizAttempts.filter(attempt => attempt.user?.id === userId);
+    if (userAttempts.length === 0) return 0;
+    return userAttempts.reduce((acc, attempt) => acc + attempt.score, 0) / userAttempts.length;
+  };
+
+  const getStudentAttempts = (userId) => {
+    return quizAttempts.filter(attempt => attempt.user?.id === userId);
+  };
+
   // Advanced filtering for students
   const filteredStudents = students
     .filter(student => {
@@ -134,6 +144,15 @@ const TeacherDashboard = () => {
       } else if (filterBy === 'inactive') {
         const hasAttempts = getStudentAttempts(student.user.id).length === 0;
         return searchMatch && hasAttempts;
+      } else if (filterBy === 'high') {
+        const avgScore = getAverageScore(student.user.id);
+        return searchMatch && avgScore >= 70;
+      } else if (filterBy === 'average') {
+        const avgScore = getAverageScore(student.user.id);
+        return searchMatch && avgScore >= 50 && avgScore < 70;
+      } else if (filterBy === 'low') {
+        const avgScore = getAverageScore(student.user.id);
+        return searchMatch && avgScore < 50;
       }
       
       return searchMatch;
@@ -186,16 +205,6 @@ const TeacherDashboard = () => {
 
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-  };
-
-  const getAverageScore = (userId) => {
-    const userAttempts = quizAttempts.filter(attempt => attempt.user?.id === userId);
-    if (userAttempts.length === 0) return 0;
-    return userAttempts.reduce((acc, attempt) => acc + attempt.score, 0) / userAttempts.length;
-  };
-
-  const getStudentAttempts = (userId) => {
-    return quizAttempts.filter(attempt => attempt.user?.id === userId);
   };
 
   if (loading) {
@@ -259,6 +268,9 @@ const TeacherDashboard = () => {
             <option value="all">All Students</option>
             <option value="active">Active Students</option>
             <option value="inactive">Inactive Students</option>
+            <option value="high">High Performers (&ge;70%)</option>
+            <option value="average">Average (50-69%)</option>
+            <option value="low">Low Performers (&lt;50%)</option>
           </select>
           <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
             <option value="all">All Time</option>
