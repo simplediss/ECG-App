@@ -30,21 +30,47 @@
   margin-bottom: var(--space-lg);
 }
 
-.logo-icon {
-  font-size: 2.5rem;
+.logo-container {
+  position: relative;
+  width: 32px;
+  height: 32px;
   margin-right: var(--space-sm);
-  color: var(--primary);
-  animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
+.logo-icon {
+  color: var(--primary);
+}
+
+.activity-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.heart-icon {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  color: var(--danger);
+  animation: heartbeat 1.5s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+@keyframes heartbeat {
   0% {
     transform: scale(1);
   }
-  50% {
+  14% {
     transform: scale(1.1);
   }
-  100% {
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
     transform: scale(1);
   }
 }
