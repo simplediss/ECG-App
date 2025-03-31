@@ -53,6 +53,20 @@ const TeacherRoute = ({ children }) => {
   return children;
 };
 
+const TeacherOrAdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!user || (user.profile?.role !== 'teacher' && !user.is_staff)) {
+    return <Navigate to="/home" />;
+  }
+  
+  return children;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || 
@@ -109,9 +123,9 @@ const AppContent = () => {
         <Route
           path="/quiz-review/:attemptId"
           element={
-            <TeacherRoute>
+            <TeacherOrAdminRoute>
               <QuizReview />
-            </TeacherRoute>
+            </TeacherOrAdminRoute>
           }
         />
         <Route
