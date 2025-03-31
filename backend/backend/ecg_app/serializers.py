@@ -110,7 +110,7 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    login_identifier = serializers.CharField(help_text="Username or Email")
     password = serializers.CharField(write_only=True)
 
 

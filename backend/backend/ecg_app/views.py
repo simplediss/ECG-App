@@ -17,6 +17,7 @@ from django.http import FileResponse, Http404, HttpResponseRedirect
 import os
 import random
 from django.db.models import Q
+from django.contrib.auth.models import User
 
 from .models import (
     EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed,
@@ -307,9 +308,21 @@ def view_quiz_attempts(request):
 def api_login(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
-        username = serializer.validated_data['username']
+        login_identifier = serializer.validated_data['login_identifier']
         password = serializer.validated_data['password']
-        user = authenticate(username=username, password=password)
+        
+        # Check if login_identifier is an email
+        if '@' in login_identifier:
+            try:
+                # Try to get user by email
+                user_obj = User.objects.get(email=login_identifier)
+                # Authenticate with the username
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                user = None
+        else:
+            # Authenticate with username
+            user = authenticate(username=login_identifier, password=password)
         
         if user is not None:
             login(request, user)

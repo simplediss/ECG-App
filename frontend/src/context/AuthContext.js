@@ -39,13 +39,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (username, password) => {
+  const login = async (loginIdentifier, password) => {
     try {
       // Get a fresh CSRF token before login
       await getCsrfToken();
       
       const response = await axiosInstance.post(`/auth/login/`, {
-        username,
+        login_identifier: loginIdentifier,
         password
       }, {
         withCredentials: true
