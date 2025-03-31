@@ -56,6 +56,11 @@ class Command(BaseCommand):
                 return
 
         try:
+            # Check if user already exists
+            if User.objects.filter(username=username).exists():
+                self.stdout.write(self.style.SUCCESS(f'Already created user "{username}", moving on...'))
+                return
+                
             # Create user
             user = User.objects.create_user(
                 username=username,
