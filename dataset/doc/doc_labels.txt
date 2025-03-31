@@ -1,0 +1,6 @@
+LOW RISK
+HIGH RISK: T wave inversion
+STEMI: Septal (V1-2)
+STEMI: Anterior (V3-4)
+STEMI: Lateral (I + aVL, V5-6)
+STEMI: Inferior (II, III, aVF)
