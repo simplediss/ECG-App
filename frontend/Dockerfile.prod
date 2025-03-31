@@ -1,6 +1,7 @@
 # Build React app
 FROM node:22.11.0 as build
 
+ENV REACT_APP_DEBUG=false
 ENV REACT_APP_API_BASE_URL="/api"
 ENV CHOKIDAR_USEPOLLING=true
 ENV WDS_SOCKET_PORT=0

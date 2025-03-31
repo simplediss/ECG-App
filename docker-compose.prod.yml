@@ -48,6 +48,7 @@ services:
     volumes:
       - ./frontend:/app
       - ./ssl:/etc/nginx/ssl  # Mount SSL certificates
+      - ./dataset:/dataset
 
 volumes:
   db_data:

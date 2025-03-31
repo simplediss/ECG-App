@@ -37,7 +37,17 @@ axiosInstance.interceptors.request.use(async (config) => {
 export const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path; // Already a full URL
-    return `${API_BASE_URL}/images/${encodeURIComponent(path)}`;
+
+    // If we're in development mode, use the API base URL
+    if (process.env.REACT_APP_DEBUG) {
+        return `${API_BASE_URL}/images/${encodeURIComponent(path)}`;
+    }
+    
+    // Remove any leading slashes and 'dataset/' prefix if present
+    const cleanPath = path.replace(/^\/?(dataset\/)?/, '');
+    
+    // Join path segments without encoding slashes
+    return `/ecg-images/${cleanPath}`;
 };
 
 export default axiosInstance;
