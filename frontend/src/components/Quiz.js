@@ -53,7 +53,8 @@ const Quiz = () => {
   useEffect(() => {
     if (selectedQuiz && selectedQuiz.questions[currentQuestionIndex]) {
       const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
-      setRandomizedChoices(shuffleArray(currentQuestion.choices));
+      const sortedChoices = [...currentQuestion.choices].sort((a, b) => a.text.localeCompare(b.text));
+      setRandomizedChoices(sortedChoices);
     }
   }, [selectedQuiz, currentQuestionIndex]);
 
@@ -86,7 +87,8 @@ const Quiz = () => {
       setStartTime(Date.now());
       setDuration(null);
       if (quiz.questions[0]) {
-        setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
+        const sortedChoices = [...quiz.questions[0].choices].sort((a, b) => a.text.localeCompare(b.text));
+        setRandomizedChoices(sortedChoices);
       }
     } catch (err) {
       console.error('Quiz generation error:', err);
@@ -128,7 +130,8 @@ const Quiz = () => {
     setStartTime(Date.now());
     setDuration(null);
     if (quiz.questions[0]) {
-      setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
+      const sortedChoices = [...quiz.questions[0].choices].sort((a, b) => a.text.localeCompare(b.text));
+      setRandomizedChoices(sortedChoices);
     }
   };
 
@@ -306,7 +309,7 @@ const Quiz = () => {
   }
 
   const renderOptions = () => {
-    return randomizedChoices.map((choice) => {
+    return randomizedChoices.map((choice, index) => {
       let optionClass = '';
       
       if (isAnswerChecked) {
@@ -327,7 +330,7 @@ const Quiz = () => {
           disabled={isAnswerChecked}
         >
           <div className="option-label">
-            <span className="option-marker">{String.fromCharCode(65 + randomizedChoices.indexOf(choice))}</span>
+            <span className="option-marker">{String.fromCharCode(65 + index)}</span>
             {choice.text}
           </div>
         </button>
