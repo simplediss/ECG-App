@@ -225,4 +225,22 @@
   .forgot-password {
     margin-top: var(--space-xs);
   }
+}
+
+/* Success page styling */
+.success-icon {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.success-message {
+  text-align: center;
+  margin: 20px 0;
+  padding: 0 15px;
+}
+
+.success-message p {
+  margin-bottom: 10px;
+  color: #555;
 } 
