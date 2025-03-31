@@ -38,13 +38,13 @@ export const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path; // Already a full URL
 
+    // Clean the path by removing leading slashes and dataset/ prefix
+    const cleanPath = path.replace(/^\/?(dataset\/)?/, '');
+
     // If we're in development mode, use the API base URL
     if (process.env.REACT_APP_DEBUG === 'true') {
-        return `${API_BASE_URL}/images/${encodeURIComponent(path)}`;
+        return `${API_BASE_URL}/images/${encodeURIComponent(cleanPath)}`;
     }
-    
-    // Remove any leading slashes and 'dataset/' prefix if present
-    const cleanPath = path.replace(/^\/?(dataset\/)?/, '');
     
     // Join path segments without encoding slashes
     return `/ecg-images/${cleanPath}`;
