@@ -22,21 +22,9 @@ const QuizReview = () => {
     try {
       setIsLoading(true);
       const data = await fetchQuizAttempt(attemptId);
-      console.log('Quiz attempt data:', data);
-      if (data?.question_attempts) {
-        data.question_attempts.forEach((attempt, index) => {
-          console.log(`Question ${index + 1} data:`, {
-            question: attempt.question,
-            choices: attempt.question?.choices,
-            correctChoice: attempt.question?.choices?.find(c => c.is_correct),
-            selectedChoice: attempt.selected_choice
-          });
-        });
-      }
       setQuizAttempt(data);
       setIsLoading(false);
     } catch (err) {
-      console.error('Error loading quiz attempt:', err);
       setError('Failed to load quiz attempt. Please try again later.');
       setIsLoading(false);
     }
@@ -53,14 +41,10 @@ const QuizReview = () => {
   };
 
   const getCorrectChoice = (choices) => {
-    console.log('Getting correct choice from:', choices);
     if (!choices || !Array.isArray(choices)) {
-      console.log('No choices array found');
       return null;
     }
-    const correct = choices.find(choice => choice.is_correct);
-    console.log('Found correct choice:', correct);
-    return correct;
+    return choices.find(choice => choice.is_correct);
   };
 
   const getEcgImageUrl = (question) => {
