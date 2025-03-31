@@ -39,7 +39,7 @@ export const getImageUrl = (path) => {
     if (path.startsWith('http')) return path; // Already a full URL
 
     // If we're in development mode, use the API base URL
-    if (process.env.REACT_APP_DEBUG) {
+    if (process.env.REACT_APP_DEBUG === 'true') {
         return `${API_BASE_URL}/images/${encodeURIComponent(path)}`;
     }
     
