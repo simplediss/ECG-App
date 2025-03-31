@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.db.models import Count, Avg
-from .models import Quiz, Question, Choice, EcgSamples, EcgSnomed, QuizAttempt, QuestionAttempt
+from .models import Quiz, Question, Choice, EcgSamples, EcgDocLabels, QuizAttempt, QuestionAttempt
 import random
 from datetime import timedelta
 import math
@@ -11,16 +11,16 @@ class QuizGenerator:
     
     def __init__(self, user):
         self.user = user
-        self.available_samples = EcgSamples.objects.filter(snomed_labels__isnull=False).distinct()
-        self.all_snomed_labels = list(EcgSnomed.objects.all())
+        self.available_samples = EcgSamples.objects.filter(doc_labels__isnull=False).distinct()
+        self.all_doc_labels = list(EcgDocLabels.objects.all())
 
     def validate_requirements(self):
         """Validate if there are enough samples and labels to generate a quiz."""
         if not self.available_samples.exists():
             raise ValueError('No ECG samples available')
         
-        if len(self.all_snomed_labels) < 4:
-            raise ValueError('Not enough SNOMED labels available')
+        if len(self.all_doc_labels) < 4:
+            raise ValueError('Not enough doc labels available')
         
         return True
 
@@ -60,9 +60,10 @@ class QuizGenerator:
 class RandomQuizGenerator(QuizGenerator):
     """Generates a quiz with random questions and choices."""
     
-    def __init__(self, user, num_questions=5):
+    def __init__(self, user, num_questions=5, choices_per_question=6):
         super().__init__(user)
         self.num_questions = num_questions
+        self.choices_per_question = choices_per_question
 
     def generate(self):
         """Generate a random quiz."""
@@ -83,8 +84,8 @@ class RandomQuizGenerator(QuizGenerator):
 
         # Create questions and choices
         for sample in selected_samples:
-            # Get the correct SNOMED labels for this sample
-            correct_labels = list(EcgSnomed.objects.filter(samples__sample_id=sample))
+            # Get the correct doc labels for this sample
+            correct_labels = list(EcgDocLabels.objects.filter(samples__sample_id=sample))
             if not correct_labels:
                 continue
 
@@ -99,8 +100,8 @@ class RandomQuizGenerator(QuizGenerator):
             )
 
             # Create incorrect choices (distractors)
-            incorrect_labels = [label for label in self.all_snomed_labels if label not in correct_labels]
-            selected_incorrect = random.sample(incorrect_labels, min(3, len(incorrect_labels)))
+            incorrect_labels = [label for label in self.all_doc_labels if label not in correct_labels]
+            selected_incorrect = random.sample(incorrect_labels, min(self.choices_per_question - 1, len(incorrect_labels)))
 
             # Create all choices
             self.create_choices(question, correct_label, selected_incorrect)
@@ -111,14 +112,15 @@ class RandomQuizGenerator(QuizGenerator):
 class PersonalizedQuizGenerator(QuizGenerator):
     """Generates a personalized quiz based on user's performance history."""
     
-    def __init__(self, user, num_questions=5, personalization_weight=0.7, recency_weight=0.5):
+    def __init__(self, user, num_questions=5, personalization_weight=0.7, recency_weight=0.5, choices_per_question=6):
         super().__init__(user)
         self.num_questions = num_questions
         self.personalization_weight = personalization_weight  # How much to weight personalization vs randomness
         self.recency_weight = recency_weight  # How much to weight recent attempts vs older ones
+        self.choices_per_question = choices_per_question  # Number of choices per question (including correct answer)
 
     def get_user_performance_by_label(self):
-        """Calculate user's performance for each SNOMED label."""
+        """Calculate user's performance for each doc label."""
         # Get all question attempts for the user
         attempts = QuestionAttempt.objects.filter(
             quiz_attempt__user=self.user,
@@ -132,7 +134,7 @@ class PersonalizedQuizGenerator(QuizGenerator):
         label_performance = {}
         for attempt in attempts:
             # Get the correct label for this question
-            correct_label = attempt.question.ecg_sample.snomed_labels.first()
+            correct_label = attempt.question.ecg_sample.doc_labels.first()
             if not correct_label:
                 continue
 
@@ -196,7 +198,7 @@ class PersonalizedQuizGenerator(QuizGenerator):
         sample_weights = []
         for sample in samples:
             # Get the correct label for this sample
-            correct_label = sample.snomed_labels.first()
+            correct_label = sample.doc_labels.first()
             if not correct_label:
                 continue
 
@@ -237,8 +239,8 @@ class PersonalizedQuizGenerator(QuizGenerator):
 
         # Create questions and choices
         for sample in selected_samples:
-            # Get the correct SNOMED labels for this sample
-            correct_labels = list(EcgSnomed.objects.filter(samples__sample_id=sample))
+            # Get the correct doc labels for this sample
+            correct_labels = list(EcgDocLabels.objects.filter(samples__sample_id=sample))
             if not correct_labels:
                 continue
 
@@ -253,8 +255,8 @@ class PersonalizedQuizGenerator(QuizGenerator):
             )
 
             # Create incorrect choices (distractors)
-            incorrect_labels = [label for label in self.all_snomed_labels if label not in correct_labels]
-            selected_incorrect = random.sample(incorrect_labels, min(3, len(incorrect_labels)))
+            incorrect_labels = [label for label in self.all_doc_labels if label not in correct_labels]
+            selected_incorrect = random.sample(incorrect_labels, min(self.choices_per_question - 1, len(incorrect_labels)))
 
             # Create all choices
             self.create_choices(question, correct_label, selected_incorrect)

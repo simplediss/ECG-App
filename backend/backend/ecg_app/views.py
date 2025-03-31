@@ -131,11 +131,15 @@ class QuizViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
 
+            # Get choices_per_question from request data or use default
+            choices_per_question = request.data.get('choices_per_question', 6)
+            
             generator = PersonalizedQuizGenerator(
                 user=target_user,
                 num_questions=5,
                 personalization_weight=0.7,  # 70% personalization at max
-                recency_weight=0.5  # Moderate decay of old attempts
+                recency_weight=0.5,  # Moderate decay of old attempts
+                choices_per_question=choices_per_question
             )
             quiz = generator.generate()
             

@@ -1,12 +1,12 @@
-"""This command is used to create a new quiz with ECG samples and SNOMED labels."""
+"""This command is used to create a new quiz with ECG samples and doc labels."""
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from ecg_app.models import Quiz, Question, Choice, EcgSamples, EcgSnomed, EcgSamplesSnomed
+from ecg_app.models import Quiz, Question, Choice, EcgSamples, EcgDocLabels, EcgSamplesDocLabels
 import random
 
 
 class Command(BaseCommand):
-    help = "Create a new quiz with ECG samples and SNOMED labels"
+    help = "Create a new quiz with ECG samples and doc labels"
 
     def add_arguments(self, parser):
         parser.add_argument('title', type=str, help='Title of the quiz')
@@ -21,9 +21,9 @@ class Command(BaseCommand):
         choices_per_question = options['choices_per_question']
 
         # Check if we have enough samples
-        available_samples = EcgSamples.objects.filter(snomed_labels__isnull=False).distinct()
+        available_samples = EcgSamples.objects.filter(doc_labels__isnull=False).distinct()
         if not available_samples.exists():
-            self.stderr.write(self.style.ERROR('No ECG samples with SNOMED labels found in the database.'))
+            self.stderr.write(self.style.ERROR('No ECG samples with doc labels found in the database.'))
             return
 
         sample_count = available_samples.count()
@@ -33,11 +33,11 @@ class Command(BaseCommand):
             ))
             num_questions = sample_count
 
-        # Get all SNOMED labels for creating distractors
-        all_snomed_labels = list(EcgSnomed.objects.all())
-        if len(all_snomed_labels) < choices_per_question:
+        # Get all doc labels for creating distractors
+        all_doc_labels = list(EcgDocLabels.objects.all())
+        if len(all_doc_labels) < choices_per_question:
             self.stderr.write(self.style.ERROR(
-                f'Not enough SNOMED labels available. Need at least {choices_per_question} labels.'
+                f'Not enough doc labels available. Need at least {choices_per_question} labels.'
             ))
             return
 
@@ -53,8 +53,8 @@ class Command(BaseCommand):
                 selected_samples = samples[:num_questions]
 
                 for sample in selected_samples:
-                    # Get the correct SNOMED labels for this sample
-                    correct_labels = list(EcgSnomed.objects.filter(samples__sample_id=sample))
+                    # Get the correct doc labels for this sample
+                    correct_labels = list(EcgDocLabels.objects.filter(samples__sample_id=sample))
                     if not correct_labels:
                         continue
 
@@ -76,7 +76,7 @@ class Command(BaseCommand):
                     )
 
                     # Create incorrect choices (distractors)
-                    incorrect_labels = [label for label in all_snomed_labels if label not in correct_labels]
+                    incorrect_labels = [label for label in all_doc_labels if label not in correct_labels]
                     selected_incorrect = random.sample(incorrect_labels, min(choices_per_question - 1, len(incorrect_labels)))
 
                     for label in selected_incorrect:

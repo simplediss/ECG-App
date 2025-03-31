@@ -44,9 +44,11 @@ export const checkAnswer = async (questionId, choiceId) => {
 };
 
 // Generate a random quiz
-export const generateRandomQuiz = async () => {
+export const generateRandomQuiz = async (choices_per_question = 6) => {
   try {
-    const response = await axiosInstance.post('quizzes/generate_random/');
+    const response = await axiosInstance.post('quizzes/generate_random/', {
+      choices_per_question: choices_per_question
+    });
     return response.data;
   } catch (error) {
     throw error;
