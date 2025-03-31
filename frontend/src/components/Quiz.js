@@ -89,7 +89,27 @@ const Quiz = () => {
         setRandomizedChoices(shuffleArray(quiz.questions[0].choices));
       }
     } catch (err) {
-      setError('Failed to generate quiz. Please try again later.');
+      console.error('Quiz generation error:', err);
+      let errorMessage = 'Failed to generate quiz. Please try again later.';
+      
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Error response:', err.response.data);
+        if (err.response.data && err.response.data.error) {
+          errorMessage = `Error: ${err.response.data.error}`;
+        } else if (err.response.status === 403) {
+          errorMessage = 'You do not have permission to generate quizzes. Please contact your instructor.';
+        } else if (err.response.status === 401) {
+          errorMessage = 'Your session has expired. Please log in again.';
+          // Redirect to login if session expired
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

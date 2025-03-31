@@ -12,26 +12,62 @@ const axiosInstance = axios.create({
     },
 });
 
+// Store the CSRF token in memory
+let csrfToken = null;
+
+// Function to get CSRF token
+const getCsrfToken = async () => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/auth/csrf/`, {
+            withCredentials: true
+        });
+        return response.data.csrfToken;
+    } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+        return null;
+    }
+};
+
 // Add a request interceptor to get CSRF token if needed
 axiosInstance.interceptors.request.use(async (config) => {
-    // If we don't have a CSRF token, get one
-    if (!axios.defaults.headers.common['X-CSRFToken']) {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/auth/csrf/`, {
-                withCredentials: true
-            });
-            axios.defaults.headers.common['X-CSRFToken'] = response.data.csrfToken;
-        } catch (error) {
-            console.error('Failed to fetch CSRF token:', error);
-        }
+    // If we don't have a CSRF token in memory, get one
+    if (!csrfToken) {
+        csrfToken = await getCsrfToken();
     }
     
     // Add the CSRF token to the request headers
-    config.headers['X-CSRFToken'] = axios.defaults.headers.common['X-CSRFToken'];
+    if (csrfToken) {
+        config.headers['X-CSRFToken'] = csrfToken;
+    }
+    
     return config;
 }, (error) => {
     return Promise.reject(error);
 });
+
+// Add a response interceptor to handle token refresh on 403 errors
+axiosInstance.interceptors.response.use(
+    response => response,
+    async error => {
+        const originalRequest = error.config;
+        
+        // If it's a 403 error and we haven't already tried to refresh the token
+        if (error.response && error.response.status === 403 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            
+            // Try to get a new CSRF token
+            csrfToken = await getCsrfToken();
+            
+            if (csrfToken) {
+                // Update the request with the new token
+                originalRequest.headers['X-CSRFToken'] = csrfToken;
+                return axiosInstance(originalRequest);
+            }
+        }
+        
+        return Promise.reject(error);
+    }
+);
 
 // Helper for getting image URLs with the correct base
 export const getImageUrl = (path) => {
@@ -49,5 +85,8 @@ export const getImageUrl = (path) => {
     // Join path segments without encoding slashes
     return `/ecg-images/${cleanPath}`;
 };
+
+// Export the getCsrfToken function for direct use
+export { getCsrfToken };
 
 export default axiosInstance;

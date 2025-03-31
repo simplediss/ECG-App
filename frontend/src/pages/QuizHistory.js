@@ -65,7 +65,7 @@ const QuizHistory = () => {
     return <div className="quiz-history-container error">{error}</div>;
   }
 
-  const isTeacher = user?.profile?.role === 'teacher';
+  const isTeacherOrAdmin = user?.profile?.role === 'teacher' || user?.is_staff;
 
   return (
     <div className="quiz-history-container">
@@ -76,7 +76,7 @@ const QuizHistory = () => {
       {quizHistory.length === 0 ? (
         <div className="no-history">
           <p>You haven't taken any quizzes yet.</p>
-          {!isTeacher && (
+          {!isTeacherOrAdmin && (
             <button onClick={() => navigate('/quiz')} className="primary-button">
               Take a Quiz
             </button>
@@ -106,7 +106,7 @@ const QuizHistory = () => {
                   <td>{attempt.correct_answers || 0}</td>
                   <td>{attempt.total_questions || 0}</td>
                   <td>
-                    {isTeacher ? (
+                    {isTeacherOrAdmin ? (
                       <button
                         onClick={() => navigate(`/quiz-review/${attempt.id}`)}
                         className="review-button"

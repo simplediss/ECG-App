@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import RegisterSuccess from './pages/RegisterSuccess';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -52,9 +53,25 @@ const TeacherRoute = ({ children }) => {
   return children;
 };
 
+const TeacherOrAdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!user || (user.profile?.role !== 'teacher' && !user.is_staff)) {
+    return <Navigate to="/home" />;
+  }
+  
+  return children;
+};
+
 const AppContent = () => {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAuthPage = location.pathname === '/login' || 
+                    location.pathname === '/register' || 
+                    location.pathname === '/register-success';
 
   return (
     <div className="App">
@@ -62,6 +79,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/register-success" element={<RegisterSuccess />} />
         <Route
           path="/home"
           element={
@@ -105,9 +123,9 @@ const AppContent = () => {
         <Route
           path="/quiz-review/:attemptId"
           element={
-            <TeacherRoute>
+            <TeacherOrAdminRoute>
               <QuizReview />
-            </TeacherRoute>
+            </TeacherOrAdminRoute>
           }
         />
         <Route
