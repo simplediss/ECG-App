@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from django.conf import settings
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponseRedirect
 import os
 import random
 from django.db.models import Q
@@ -501,12 +501,19 @@ def update_user_profile(request, profile_id):
 @permission_classes([IsAuthenticated])
 def serve_ecg_image(request, image_path):
     """
-    Securely serve ECG images from the dataset directory.
+    Serve ECG images - directly in development, redirect to Nginx in production.
     """
     # Normalize the path to prevent directory traversal attacks
     normalized_path = os.path.normpath(image_path)
     
-    # Construct the full path
+    # Remove any leading slashes to make the path relative
+    normalized_path = normalized_path.lstrip('/')
+    
+    # Add .png extension if not present
+    if not normalized_path.lower().endswith('.png'):
+        normalized_path += '.png'
+    
+    # Construct the full path for validation
     full_path = os.path.join(settings.DATASET_SAMPLES_PATH, normalized_path)
     
     # Security check: ensure the path is within the dataset directory
@@ -521,8 +528,12 @@ def serve_ecg_image(request, image_path):
     if not any(full_path.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif', '.bmp']):
         raise Http404("Invalid file type")
     
-    # Serve the file
-    return FileResponse(open(full_path, 'rb'), content_type='image/jpeg')
+    if settings.DEBUG:
+        # In development, serve the file directly through Django
+        return FileResponse(open(full_path, 'rb'), content_type='image/png')
+    else:
+        # In production, redirect to Nginx
+        return HttpResponseRedirect(f'/ecg-images/{normalized_path}')
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()

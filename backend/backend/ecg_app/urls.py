@@ -37,8 +37,9 @@ urlpatterns = [
     path('api/user-profile/<int:profile_id>/', views.update_user_profile, name='update_user_profile'),
     # GeneralAPI endpoints
     path('api/check-answer/', views.CheckAnswerView.as_view(), name='check-answer'),
-    # Image serving endpoint
-    path('api/images/<path:image_path>', views.serve_ecg_image, name='serve_ecg_image'),
+    # Image serving endpoint - handle both with and without .png extension
+    path('api/images/<path:image_path>.png', views.serve_ecg_image, name='serve_ecg_image'),
+    path('api/images/<path:image_path>', views.serve_ecg_image, name='serve_ecg_image_no_ext'),
 ]
 
 if DEBUG:
