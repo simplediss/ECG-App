@@ -108,3 +108,6 @@ eggs/
 
 # SSL certificates
 ssl/
+
+# Production dataset
+dataset/samples_prod/

@@ -15,9 +15,10 @@ const Home = () => {
   // Create welcome message based on time of day
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+    if (hour >= 17 && hour < 22) return 'Good evening';
+    return 'Good night';
   };
 
   return (
@@ -26,7 +27,7 @@ const Home = () => {
         <div className="hero-content">
           <h1>
             <span className="welcome-text">{getWelcomeMessage()},</span>
-            <span className="username">{user.username}</span>
+            <span className="username">{user.first_name || user.username}</span>
           </h1>
           <p className="hero-subtitle">Ready to improve your ECG interpretation skills?</p>
         </div>
