@@ -64,12 +64,16 @@ class Command(BaseCommand):
                 missing_labels = set()
 
                 for row in csv_reader:
-                    if len(row) != 2:
+                    if len(row) < 2:
                         error_count += 1
                         continue
 
+                    # Handle STEMI labels with commas (i.e. "STEMI: Lateral (I + aVL, V5-6)")
+                    if len(row) != 2:
+                        row[1] = ','.join(row[1:])
+
                     sample_name = row[0].strip()
-                    doc_label = row[1].strip()[1:-1]
+                    doc_label = row[1].replace('"', '').strip()
                     
                     # Get the corresponding sample and label objects
                     sample = samples_dict.get(sample_name)
