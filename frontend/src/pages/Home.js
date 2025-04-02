@@ -26,7 +26,7 @@ const Home = () => {
         <div className="hero-content">
           <h1>
             <span className="welcome-text">{getWelcomeMessage()},</span>
-            <span className="username">{user.username}</span>
+            <span className="username">{user.first_name || user.username}</span>
           </h1>
           <p className="hero-subtitle">Ready to improve your ECG interpretation skills?</p>
         </div>
