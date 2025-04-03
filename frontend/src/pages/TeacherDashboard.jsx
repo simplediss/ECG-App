@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
 import './TeacherDashboard.css';
+import { fetchProfiles } from '../api/userApi';
+import { fetchQuizHistory } from '../api/quizApi';
 
 const TeacherDashboard = () => {
   const [students, setStudents] = useState([]);
@@ -40,10 +41,10 @@ const TeacherDashboard = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await axiosInstance.get('profiles/');
+      const profiles = await fetchProfiles();
       // Filter out any profiles without user data
-      const validStudents = response.data.filter(student => student && student.user);
-      setStudents(validStudents);
+      const validStudents = profiles.filter(student => student && student.user);
+setStudents(validStudents);
     } catch (error) {
       console.error('Error fetching students:', error.response?.data || error.message);
       setStudents([]);
@@ -52,8 +53,8 @@ const TeacherDashboard = () => {
 
   const fetchQuizAttempts = async () => {
     try {
-      const response = await axiosInstance.get('quiz-attempts/');
-      setQuizAttempts(response.data);
+      const history = await fetchQuizHistory();
+      setQuizAttempts(history);
     } catch (error) {
       console.error('Error fetching quiz attempts:', error.response?.data || error.message);
       // Set empty array to prevent undefined errors
