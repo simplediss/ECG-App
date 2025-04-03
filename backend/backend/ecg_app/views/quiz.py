@@ -7,13 +7,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from ..models import (
-    Quiz, Question, Choice, QuizAttempt, QuestionAttempt
-)
-from ..serializers import (
-    QuizSerializer, QuestionSerializer, ChoiceSerializer,
-    QuizAttemptSerializer, QuestionAttemptSerializer,
-)
+from ..models import Quiz, Question, Choice, QuizAttempt, QuestionAttempt
+from ..serializers import QuizSerializer, QuizAttemptSerializer
 from ..quiz_generator import PersonalizedQuizGenerator
 from ..permissions import IsTeacherOrAdmin, IsOwnerOrTeacherOrAdmin
 
@@ -70,15 +65,6 @@ class QuizViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class QuestionViewSet(viewsets.ModelViewSet):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
-
-class ChoiceViewSet(viewsets.ModelViewSet):
-    queryset = Choice.objects.all()
-    serializer_class = ChoiceSerializer
-    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class QuizAttemptViewSet(viewsets.ModelViewSet):
@@ -142,17 +128,6 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
             'correct_answers': correct_answers,
             'total_questions': total_questions
         }, status=status.HTTP_201_CREATED)
-
-class QuestionAttemptViewSet(viewsets.ModelViewSet):
-    queryset = QuestionAttempt.objects.all()
-    serializer_class = QuestionAttemptSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrTeacherOrAdmin]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher'):
-            return QuestionAttempt.objects.all()
-        return QuestionAttempt.objects.filter(quiz_attempt__user=user)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
