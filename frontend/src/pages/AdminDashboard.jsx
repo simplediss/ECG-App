@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/AdminDashboard.css';
-import './TeacherDashboard.css'; // Import teacher dashboard styles
+import '../styles/pages/AdminDashboard.css';
+import '../styles/pages/TeacherDashboard.css'; // Import teacher dashboard styles
 import UserManagement from './UserManagement'; // Import the UserManagement component
 import { fetchProfiles } from '../api/userApi';
 import { fetchQuizHistory } from '../api/quizApi';

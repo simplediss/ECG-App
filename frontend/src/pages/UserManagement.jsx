@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as userApi from '../api/userApi';
-import '../styles/UserManagement.css';
+import '../styles/pages/UserManagement.css';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);

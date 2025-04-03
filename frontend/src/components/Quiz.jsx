@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { generateRandomQuiz, submitQuizAnswers, checkAnswer, fetchQuizQuestions } from '../api/quizApi';
 import { getImageUrl } from '../api/axiosInstance';
-import '../styles/Quiz.css';
+import '../styles/components/Quiz.css';
 
 const Quiz = () => {
   const navigate = useNavigate();

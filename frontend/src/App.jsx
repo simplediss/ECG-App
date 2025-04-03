@@ -13,7 +13,7 @@ import QuizHistory from './pages/QuizHistory';
 import QuizReview from './pages/QuizReview';
 import Groups from './pages/Groups';
 import Navbar from './components/Navbar';
-import './App.css';
+import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();

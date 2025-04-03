@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './TeacherDashboard.css';
+import '../styles/pages/TeacherDashboard.css';
 import { fetchProfiles } from '../api/userApi';
 import { fetchQuizHistory } from '../api/quizApi';
 
