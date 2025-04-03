@@ -4,7 +4,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views.auth import *
-from .views.ecg_data import *
 from .views.group import *
 from .views.image import *
 from .views.profile import *
@@ -16,11 +15,6 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 
 router = DefaultRouter()
-router.register(r'ecg-samples', EcgSamplesViewSet, basename='ecg-samples')
-router.register(r'ecg-doc-labels', EcgDocLabelsViewSet, basename='ecg-doc-labels')
-router.register(r'ecg-snomed', EcgSnomedViewSet, basename='ecg-snomed')
-router.register(r'ecg-samples-doc-labels', EcgSamplesDocLabelsViewSet, basename='ecg-samples-doc-labels')
-router.register(r'ecg-samples-snomed', EcgSamplesSnomedViewSet, basename='ecg-samples-snomed')
 router.register(r'profiles', ProfileViewSet, basename='profiles')
 router.register(r'quizzes', QuizViewSet, basename='quizzes')
 router.register(r'questions', QuestionViewSet, basename='questions')
