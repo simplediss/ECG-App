@@ -7,7 +7,6 @@ import Register from './pages/Register';
 import RegisterSuccess from './pages/RegisterSuccess';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
-import TeacherDashboard from './pages/TeacherDashboard';
 import Quiz from './components/Quiz';
 import QuizHistory from './pages/QuizHistory';
 import QuizReview from './pages/QuizReview';
@@ -40,20 +39,6 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
-const TeacherRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  
-  if (!user || user.profile?.role !== 'teacher') {
-    return <Navigate to="/home" />;
-  }
-  
-  return children;
-};
-
 const TeacherOrAdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
@@ -61,7 +46,7 @@ const TeacherOrAdminRoute = ({ children }) => {
     return <div>Loading...</div>;
   }
   
-  if (!user || (user.profile?.role !== 'teacher' && !user.is_staff)) {
+  if (!user || !(user.is_staff || (user.profile?.role === 'teacher'))) {
     return <Navigate to="/home" />;
   }
   
@@ -70,13 +55,11 @@ const TeacherOrAdminRoute = ({ children }) => {
 
 const AppContent = () => {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || 
-                    location.pathname === '/register' || 
-                    location.pathname === '/register-success';
+  const showNavbar = !['/login', '/register', '/register-success'].includes(location.pathname);
 
   return (
-    <div className="App">
-      {!isAuthPage && <Navbar />}
+    <div className="app">
+      {showNavbar && <Navbar />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -98,15 +81,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/teacher"
-          element={
-            <TeacherRoute>
-              <TeacherDashboard />
-            </TeacherRoute>
-          }
-        />
-        <Route
-          path="/quiz"
+          path="/quiz/:id"
           element={
             <PrivateRoute>
               <Quiz />
@@ -122,7 +97,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/quiz-review/:attemptId"
+          path="/quiz-review/:id"
           element={
             <PrivateRoute>
               <QuizReview />
@@ -138,14 +113,6 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <div>Profile Page (Coming Soon)</div>
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/settings"
           element={
             <PrivateRoute>
@@ -156,9 +123,9 @@ const AppContent = () => {
         <Route
           path="/student/:username"
           element={
-            <TeacherRoute>
+            <TeacherOrAdminRoute>
               <StudentOverview />
-            </TeacherRoute>
+            </TeacherOrAdminRoute>
           }
         />
         <Route path="/" element={<Navigate to="/home" />} />
