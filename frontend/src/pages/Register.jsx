@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
-import '../styles/pages/Login.css';
-import FormProgressIndicator from '../components/forms/FormProgressIndicator';
-import FormField from '../components/forms/FormField';
-import FormStep from '../components/forms/FormStep';
-import { validateAccountStep, validatePersonalInfoStep, isStepValid } from '../components/forms/FormValidation';
+import '../styles/pages/Login.css'; // Reuse login styles
 
 const Register = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [page, setPage] = useState(1); // Track current page
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -23,81 +19,233 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const steps = [
-    { label: 'Account' },
-    { label: 'Personal Info' }
-  ];
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  const handleNext = (e) => {
+  const validatePage1 = () => {
+    const newErrors = {};
+    
+    // Validate username
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+    }
+    
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    
+    // Validate confirm password
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePage2 = () => {
+    const newErrors = {};
+    
+    // Validate first name
+    if (!formData.first_name.trim()) {
+      newErrors.first_name = 'First name is required';
+    }
+    
+    // Validate last name
+    if (!formData.last_name.trim()) {
+      newErrors.last_name = 'Last name is required';
+    }
+    
+    // Validate date of birth
+    if (!formData.date_of_birth) {
+      newErrors.date_of_birth = 'Date of birth is required';
+    }
+    
+    // Validate gender
+    if (!formData.gender) {
+      newErrors.gender = 'Please select your gender';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNextPage = (e) => {
     e.preventDefault();
-    const stepErrors = currentStep === 1 
-      ? validateAccountStep(formData)
-      : validatePersonalInfoStep(formData);
-    
-    setErrors(stepErrors);
-    
-    if (isStepValid(stepErrors)) {
-      setCurrentStep(prev => prev + 1);
+    if (validatePage1()) {
+      setPage(2);
     }
   };
 
-  const handlePrev = (e) => {
+  const handlePrevPage = (e) => {
     e.preventDefault();
-    setCurrentStep(prev => prev - 1);
+    setPage(1);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const stepErrors = validatePersonalInfoStep(formData);
-    setErrors(stepErrors);
-    
-    if (!isStepValid(stepErrors)) return;
-    
     setIsLoading(true);
+
+    if (!validatePage2()) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await axiosInstance.post('/api/auth/register/', formData);
-      if (response.data) {
-        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
-      }
-    } catch (error) {
-      const serverErrors = error.response?.data || {};
-      const fieldErrors = {};
+      const userData = new FormData();
       
-      // Handle field-specific errors
-      Object.keys(serverErrors).forEach(key => {
-        if (Array.isArray(serverErrors[key])) {
-          fieldErrors[key] = serverErrors[key][0];
-        } else if (typeof serverErrors[key] === 'string') {
-          fieldErrors[key] = serverErrors[key];
-        }
+      // Add user fields
+      userData.append('username', formData.username);
+      userData.append('password', formData.password);
+      userData.append('email', formData.email);
+      userData.append('first_name', formData.first_name);
+      userData.append('last_name', formData.last_name);
+      
+      // Add profile fields
+      userData.append('date_of_birth', formData.date_of_birth);
+      userData.append('gender', formData.gender);
+
+      const response = await axiosInstance.post(`/register/`, userData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      
-      // Handle general error message
-      if (serverErrors.message && !fieldErrors.general) {
-        fieldErrors.general = serverErrors.message;
+
+      if (response.data) {
+        navigate('/register-success');
       }
+    } catch (err) {
+      console.error('Registration error:', err.response?.data || err);
       
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors(fieldErrors);
-        if (fieldErrors.username || fieldErrors.email || fieldErrors.password || fieldErrors.confirmPassword) {
-          setCurrentStep(1);
+      // Handle different types of error responses
+      if (err.response?.data) {
+        const serverErrors = err.response.data;
+        console.log("Server errors:", serverErrors);
+        
+        const fieldErrors = {};
+        
+        // Check if the response has an errors object (from the screenshot format)
+        if (serverErrors.errors) {
+          // Process each field in the errors object
+          Object.entries(serverErrors.errors).forEach(([key, value]) => {
+            if (Array.isArray(value) && value.length > 0) {
+              fieldErrors[key] = value[0];
+            } else {
+              fieldErrors[key] = value;
+            }
+          });
+        } 
+        // Also check for direct field errors at the top level (previous format)
+        else if (typeof serverErrors === 'object') {
+          // Process all field errors
+          Object.entries(serverErrors).forEach(([key, value]) => {
+            // Handle ErrorDetail objects that have string property
+            if (value && (Array.isArray(value) || typeof value === 'object')) {
+              // For array of ErrorDetail objects (Django REST framework format)
+              if (Array.isArray(value)) {
+                const errorMessage = value[0];
+                // Handle both string errors and ErrorDetail objects
+                fieldErrors[key] = typeof errorMessage === 'string' 
+                  ? errorMessage 
+                  : (errorMessage.string || errorMessage.message || JSON.stringify(errorMessage));
+              } else {
+                // For single ErrorDetail object
+                fieldErrors[key] = value.string || value.message || JSON.stringify(value);
+              }
+            } else {
+              // Simple string error
+              fieldErrors[key] = value;
+            }
+          });
         }
-      } else if (typeof serverErrors === 'string') {
-        setErrors({ general: serverErrors });
+        
+        // Check for message in data
+        if (serverErrors.message && !fieldErrors.general) {
+          fieldErrors.general = serverErrors.message;
+        }
+        
+        // If we have any field errors, set them
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors(fieldErrors);
+          
+          // If we have errors for page 1 fields, go back to page 1
+          if (fieldErrors.username || fieldErrors.email || fieldErrors.password || fieldErrors.confirmPassword) {
+            setPage(1);
+          }
+        } else if (typeof serverErrors === 'string') {
+          // Handle string error response
+          setErrors({ general: serverErrors });
+        } else {
+          // Fallback generic error message
+          setErrors({ general: 'Registration failed. Please try again.' });
+        }
       } else {
-        setErrors({ general: 'Registration failed. Please try again.' });
+        setErrors({ general: 'Network error. Please check your connection and try again.' });
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Style for required field marker
+  const requiredStyle = { color: '#e74c3c' };
+
+  // Progress bar styles
+  const progressContainerStyle = {
+    width: '100%',
+    marginBottom: '20px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    position: 'relative'
+  };
+
+  const progressBarStyle = {
+    position: 'absolute',
+    height: '4px',
+    backgroundColor: '#4caf50',
+    top: '50%',
+    left: '0',
+    transform: 'translateY(-50%)',
+    width: page === 1 ? '25%' : '75%',
+    transition: 'width 0.3s ease'
+  };
+
+  const progressStepStyle = (stepNum) => ({
+    width: '30px',
+    height: '30px',
+    borderRadius: '50%',
+    backgroundColor: page >= stepNum ? '#4caf50' : '#e0e0e0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontWeight: 'bold',
+    zIndex: 1,
+    transition: 'background-color 0.3s ease'
+  });
+
+  const progressLabelStyle = {
+    textAlign: 'center',
+    fontSize: '12px',
+    marginTop: '5px'
   };
 
   return (
@@ -118,126 +266,199 @@ const Register = () => {
           <h2>Create Account</h2>
           <p className="auth-subtitle">Fill in your details to get started</p>
         </div>
-
-        <FormProgressIndicator
-          currentStep={currentStep}
-          totalSteps={steps.length}
-          steps={steps}
-        />
-
+        
+        {/* Progress Indicator */}
+        <div style={progressContainerStyle}>
+          <div style={progressBarStyle}></div>
+          <div style={{ textAlign: 'center', zIndex: 2 }}>
+            <div style={progressStepStyle(1)}>1</div>
+            <div style={progressLabelStyle}>Account</div>
+          </div>
+          <div style={{ textAlign: 'center', zIndex: 2 }}>
+            <div style={progressStepStyle(2)}>2</div>
+            <div style={progressLabelStyle}>Personal Info</div>
+          </div>
+        </div>
+        
         {errors.general && (
           <div className="alert alert-danger" role="alert">
             {errors.general}
           </div>
         )}
+        
+        {page === 1 ? (
+          <form onSubmit={handleNextPage} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="username" className="form-label">
+                Username <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                className={`form-control ${errors.username ? 'is-invalid' : ''}`}
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="Choose a username"
+                required
+              />
+              {errors.username && <div className="invalid-feedback">{errors.username}</div>}
+            </div>
 
-        <FormStep
-          isActive={currentStep === 1}
-          onSubmit={handleSubmit}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          isFirstStep={true}
-          isLastStep={false}
-          isValid={isStepValid(errors)}
-        >
-          <FormField
-            label="Username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            error={errors.username}
-            required
-          />
-          <FormField
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            error={errors.email}
-            required
-          />
-          <FormField
-            label="Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            required
-          />
-          <FormField
-            label="Confirm Password"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            error={errors.confirmPassword}
-            required
-          />
-        </FormStep>
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">
+                Email <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Your email address"
+                required
+              />
+              {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+            </div>
 
-        <FormStep
-          isActive={currentStep === 2}
-          onSubmit={handleSubmit}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          isFirstStep={false}
-          isLastStep={true}
-          isValid={isStepValid(errors)}
-        >
-          <div className="form-row">
-            <FormField
-              label="First Name"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleChange}
-              error={errors.first_name}
-              required
-            />
-            <FormField
-              label="Last Name"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-              error={errors.last_name}
-              required
-            />
-          </div>
-          <FormField
-            label="Date of Birth"
-            name="date_of_birth"
-            type="date"
-            value={formData.date_of_birth}
-            onChange={handleChange}
-            error={errors.date_of_birth}
-            required
-          />
-          <div className="form-group">
-            <label htmlFor="gender">
-              Gender
-              <span style={{ color: '#e74c3c' }}> *</span>
-            </label>
-            <select
-              id="gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className={errors.gender ? 'error' : ''}
-              required
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">
+                Password <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                required
+              />
+              {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword" className="form-label">
+                Confirm Password <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                className={`form-control ${errors.confirmPassword ? 'is-invalid' : ''}`}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                required
+              />
+              {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
+            </div>
+
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-block"
             >
-              <option value="">Select gender</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-              <option value="O">Other</option>
-            </select>
-            {errors.gender && <div className="error-message">{errors.gender}</div>}
-          </div>
-        </FormStep>
+              Next
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="first_name" className="form-label">
+                First Name <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                className={`form-control ${errors.first_name ? 'is-invalid' : ''}`}
+                value={formData.first_name}
+                onChange={handleChange}
+                placeholder="Your first name"
+                required
+              />
+              {errors.first_name && <div className="invalid-feedback">{errors.first_name}</div>}
+            </div>
 
+            <div className="form-group">
+              <label htmlFor="last_name" className="form-label">
+                Last Name <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                className={`form-control ${errors.last_name ? 'is-invalid' : ''}`}
+                value={formData.last_name}
+                onChange={handleChange}
+                placeholder="Your last name"
+                required
+              />
+              {errors.last_name && <div className="invalid-feedback">{errors.last_name}</div>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="date_of_birth" className="form-label">
+                Date of Birth <span style={requiredStyle}>*</span>
+              </label>
+              <input
+                type="date"
+                id="date_of_birth"
+                name="date_of_birth"
+                className={`form-control ${errors.date_of_birth ? 'is-invalid' : ''}`}
+                value={formData.date_of_birth}
+                onChange={handleChange}
+                required
+              />
+              {errors.date_of_birth && <div className="invalid-feedback">{errors.date_of_birth}</div>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="gender" className="form-label">
+                Gender <span style={requiredStyle}>*</span>
+              </label>
+              <select 
+                id="gender"
+                name="gender" 
+                className={`form-control ${errors.gender ? 'is-invalid' : ''}`}
+                value={formData.gender} 
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.gender && <div className="invalid-feedback">{errors.gender}</div>}
+            </div>
+
+            <div className="form-buttons">
+              <button 
+                type="button" 
+                className="btn btn-secondary"
+                onClick={handlePrevPage}
+                style={{ marginRight: '10px' }}
+              >
+                Back
+              </button>
+              <button 
+                type="submit" 
+                className="btn btn-primary"
+                disabled={isLoading}
+                style={{ flexGrow: 1 }}
+              >
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </button>
+            </div>
+          </form>
+        )}
+        
         <div className="auth-footer">
           <p>
-            Already have an account? <Link to="/login">Log in</Link>
+            Already have an account? <Link to="/login" className="auth-link">Sign in</Link>
           </p>
         </div>
       </div>
