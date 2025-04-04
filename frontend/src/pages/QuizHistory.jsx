@@ -22,6 +22,7 @@ import {
   Alert,
   Chip,
   CircularProgress,
+  Container,
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
@@ -175,266 +176,268 @@ const QuizHistory = () => {
   const filteredHistory = filterQuizHistory();
 
   return (
-    <Box sx={{ p: 3, backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-          Quiz History
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<RefreshIcon />}
-          onClick={loadQuizHistory}
-          sx={{
-            backgroundColor: darkMode ? 'var(--primary)' : undefined,
-            '&:hover': {
-              backgroundColor: darkMode ? 'var(--primary-dark)' : undefined,
-            }
-          }}
-        >
-          Refresh
-        </Button>
-      </Box>
-
-      {quizHistory.length === 0 ? (
-        <Box sx={{ 
-          textAlign: 'center', 
-          p: 4,
-          backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-          color: darkMode ? 'var(--text-primary)' : undefined,
-          border: darkMode ? '1px solid var(--border-color)' : undefined,
-          borderRadius: 1,
-          boxShadow: darkMode ? 'var(--box-shadow-sm)' : undefined,
-        }}>
-          <Typography variant="h6" sx={{ mb: 2, color: darkMode ? 'var(--text-primary)' : undefined }}>
-            You haven't taken any quizzes yet.
+    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, mt: 4 }}>
+      <Box sx={{ backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+            Quiz History
           </Typography>
-          {!isTeacherOrAdmin && (
-            <Button
-              variant="contained"
-              onClick={() => navigate('/quiz')}
-              sx={{
-                backgroundColor: darkMode ? 'var(--primary)' : undefined,
-                '&:hover': {
-                  backgroundColor: darkMode ? 'var(--primary-dark)' : undefined,
-                }
-              }}
-            >
-              Take a Quiz
-            </Button>
-          )}
-        </Box>
-      ) : (
-        <>
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 2, 
-            mb: 3,
-            flexWrap: 'wrap'
-          }}>
-            {isTeacherOrAdmin && (
-              <TextField
-                label="Search"
-                variant="outlined"
-                size="small"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{
-                  minWidth: 200,
-                  '& .MuiInputLabel-root': {
-                    color: darkMode ? 'var(--text-secondary)' : undefined
-                  },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: darkMode ? 'var(--border-color)' : undefined
-                    },
-                    '&:hover fieldset': {
-                      borderColor: darkMode ? 'var(--primary)' : undefined
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: darkMode ? 'var(--primary)' : undefined
-                    },
-                    color: darkMode ? 'var(--text-primary)' : undefined,
-                    backgroundColor: darkMode ? 'var(--bg-white)' : undefined
-                  }
-                }}
-              />
-            )}
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Date</InputLabel>
-              <Select
-                value={dateFilter}
-                label="Date"
-                onChange={(e) => setDateFilter(e.target.value)}
-                sx={{
-                  color: darkMode ? 'var(--text-primary)' : undefined,
-                  backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'var(--border-color)' : undefined
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'var(--primary)' : undefined
-                  }
-                }}
-              >
-                <MenuItem value="all">All Time</MenuItem>
-                <MenuItem value="today">Today</MenuItem>
-                <MenuItem value="week">Last Week</MenuItem>
-                <MenuItem value="month">Last Month</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Score</InputLabel>
-              <Select
-                value={scoreFilter}
-                label="Score"
-                onChange={(e) => setScoreFilter(e.target.value)}
-                sx={{
-                  color: darkMode ? 'var(--text-primary)' : undefined,
-                  backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'var(--border-color)' : undefined
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: darkMode ? 'var(--primary)' : undefined
-                  }
-                }}
-              >
-                <MenuItem value="all">All Scores</MenuItem>
-                <MenuItem value="high">High (≥80%)</MenuItem>
-                <MenuItem value="medium">Medium (60-79%)</MenuItem>
-                <MenuItem value="low">Low (&lt;60%)</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-
-          <TableContainer 
-            component={Paper} 
-            sx={{ 
-              backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-              color: darkMode ? 'var(--text-primary)' : undefined,
-              border: darkMode ? '1px solid var(--border-color)' : undefined,
-              boxShadow: darkMode ? 'var(--box-shadow-sm)' : undefined,
+          <Button
+            variant="contained"
+            startIcon={<RefreshIcon />}
+            onClick={loadQuizHistory}
+            sx={{
+              backgroundColor: darkMode ? 'var(--primary)' : undefined,
+              '&:hover': {
+                backgroundColor: darkMode ? 'var(--primary-dark)' : undefined,
+              }
             }}
           >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {isTeacherOrAdmin && (
+            Refresh
+          </Button>
+        </Box>
+
+        {quizHistory.length === 0 ? (
+          <Box sx={{ 
+            textAlign: 'center', 
+            p: 4,
+            backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+            color: darkMode ? 'var(--text-primary)' : undefined,
+            border: darkMode ? '1px solid var(--border-color)' : undefined,
+            borderRadius: 1,
+            boxShadow: darkMode ? 'var(--box-shadow-sm)' : undefined,
+          }}>
+            <Typography variant="h6" sx={{ mb: 2, color: darkMode ? 'var(--text-primary)' : undefined }}>
+              You haven't taken any quizzes yet.
+            </Typography>
+            {!isTeacherOrAdmin && (
+              <Button
+                variant="contained"
+                onClick={() => navigate('/quiz')}
+                sx={{
+                  backgroundColor: darkMode ? 'var(--primary)' : undefined,
+                  '&:hover': {
+                    backgroundColor: darkMode ? 'var(--primary-dark)' : undefined,
+                  }
+                }}
+              >
+                Take a Quiz
+              </Button>
+            )}
+          </Box>
+        ) : (
+          <>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 2, 
+              mb: 3,
+              flexWrap: 'wrap'
+            }}>
+              {isTeacherOrAdmin && (
+                <TextField
+                  label="Search"
+                  variant="outlined"
+                  size="small"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{
+                    minWidth: 200,
+                    '& .MuiInputLabel-root': {
+                      color: darkMode ? 'var(--text-secondary)' : undefined
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: darkMode ? 'var(--border-color)' : undefined
+                      },
+                      '&:hover fieldset': {
+                        borderColor: darkMode ? 'var(--primary)' : undefined
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: darkMode ? 'var(--primary)' : undefined
+                      },
+                      color: darkMode ? 'var(--text-primary)' : undefined,
+                      backgroundColor: darkMode ? 'var(--bg-white)' : undefined
+                    }
+                  }}
+                />
+              )}
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Date</InputLabel>
+                <Select
+                  value={dateFilter}
+                  label="Date"
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  sx={{
+                    color: darkMode ? 'var(--text-primary)' : undefined,
+                    backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: darkMode ? 'var(--border-color)' : undefined
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: darkMode ? 'var(--primary)' : undefined
+                    }
+                  }}
+                >
+                  <MenuItem value="all">All Time</MenuItem>
+                  <MenuItem value="today">Today</MenuItem>
+                  <MenuItem value="week">Last Week</MenuItem>
+                  <MenuItem value="month">Last Month</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Score</InputLabel>
+                <Select
+                  value={scoreFilter}
+                  label="Score"
+                  onChange={(e) => setScoreFilter(e.target.value)}
+                  sx={{
+                    color: darkMode ? 'var(--text-primary)' : undefined,
+                    backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: darkMode ? 'var(--border-color)' : undefined
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: darkMode ? 'var(--primary)' : undefined
+                    }
+                  }}
+                >
+                  <MenuItem value="all">All Scores</MenuItem>
+                  <MenuItem value="high">High (≥80%)</MenuItem>
+                  <MenuItem value="medium">Medium (60-79%)</MenuItem>
+                  <MenuItem value="low">Low (&lt;60%)</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <TableContainer 
+              component={Paper} 
+              sx={{ 
+                backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                color: darkMode ? 'var(--text-primary)' : undefined,
+                border: darkMode ? '1px solid var(--border-color)' : undefined,
+                boxShadow: darkMode ? 'var(--box-shadow-sm)' : undefined,
+              }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    {isTeacherOrAdmin && (
+                      <TableCell sx={{ 
+                        color: darkMode ? 'var(--text-primary)' : undefined, 
+                        fontWeight: '600',
+                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      }}>
+                        Student
+                      </TableCell>
+                    )}
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
                       borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
                     }}>
-                      Student
+                      Date
                     </TableCell>
-                  )}
-                  <TableCell sx={{ 
-                    color: darkMode ? 'var(--text-primary)' : undefined, 
-                    fontWeight: '600',
-                    borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                  }}>
-                    Date
-                  </TableCell>
-                  <TableCell sx={{ 
-                    color: darkMode ? 'var(--text-primary)' : undefined, 
-                    fontWeight: '600',
-                    borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                  }}>
-                    Score
-                  </TableCell>
-                  <TableCell sx={{ 
-                    color: darkMode ? 'var(--text-primary)' : undefined, 
-                    fontWeight: '600',
-                    borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                  }}>
-                    Correct
-                  </TableCell>
-                  <TableCell sx={{ 
-                    color: darkMode ? 'var(--text-primary)' : undefined, 
-                    fontWeight: '600',
-                    borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                  }}>
-                    Total
-                  </TableCell>
-                  <TableCell sx={{ 
-                    color: darkMode ? 'var(--text-primary)' : undefined, 
-                    fontWeight: '600',
-                    borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                  }}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredHistory.map((attempt) => (
-                  <TableRow 
-                    key={attempt.id}
-                    sx={{ 
-                      '&:hover': { 
-                        backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : undefined 
-                      },
+                    <TableCell sx={{ 
+                      color: darkMode ? 'var(--text-primary)' : undefined, 
+                      fontWeight: '600',
                       borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                    }}
-                  >
-                    {isTeacherOrAdmin && (
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                            {attempt.user?.username || 'Unknown Student'}
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
-                            {attempt.user?.first_name} {attempt.user?.last_name}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                    )}
-                    <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-                      {attempt.completed_at ? formatDate(attempt.completed_at) : 'In Progress'}
+                    }}>
+                      Score
                     </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={formatScore(attempt.score)}
-                        color={getScoreColor(attempt.score)}
-                        size="small"
-                        sx={{
-                          backgroundColor: getScoreBackgroundColor(attempt.score),
-                          color: getScoreTextColor(attempt.score),
-                          fontWeight: 'bold'
-                        }}
-                      />
+                    <TableCell sx={{ 
+                      color: darkMode ? 'var(--text-primary)' : undefined, 
+                      fontWeight: '600',
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                    }}>
+                      Correct
                     </TableCell>
-                    <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-                      {attempt.correct_answers || 0}
+                    <TableCell sx={{ 
+                      color: darkMode ? 'var(--text-primary)' : undefined, 
+                      fontWeight: '600',
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                    }}>
+                      Total
                     </TableCell>
-                    <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-                      {attempt.total_questions || 0}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => navigate(`/quiz-review/${attempt.id}`)}
-                        sx={{
-                          borderColor: darkMode ? 'var(--primary)' : undefined,
-                          color: darkMode ? 'var(--primary)' : undefined,
-                          '&:hover': {
-                            backgroundColor: darkMode ? 'rgba(67, 97, 238, 0.1)' : undefined,
-                            borderColor: darkMode ? 'var(--primary)' : undefined,
-                          }
-                        }}
-                      >
-                        Review
-                      </Button>
+                    <TableCell sx={{ 
+                      color: darkMode ? 'var(--text-primary)' : undefined, 
+                      fontWeight: '600',
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                    }}>
+                      Actions
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
-    </Box>
+                </TableHead>
+                <TableBody>
+                  {filteredHistory.map((attempt) => (
+                    <TableRow 
+                      key={attempt.id}
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : undefined 
+                        },
+                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      }}
+                    >
+                      {isTeacherOrAdmin && (
+                        <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                              {attempt.user?.username || 'Unknown Student'}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
+                              {attempt.user?.first_name} {attempt.user?.last_name}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                      )}
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                        {attempt.completed_at ? formatDate(attempt.completed_at) : 'In Progress'}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={formatScore(attempt.score)}
+                          color={getScoreColor(attempt.score)}
+                          size="small"
+                          sx={{
+                            backgroundColor: getScoreBackgroundColor(attempt.score),
+                            color: getScoreTextColor(attempt.score),
+                            fontWeight: 'bold'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                        {attempt.correct_answers || 0}
+                      </TableCell>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                        {attempt.total_questions || 0}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => navigate(`/quiz-review/${attempt.id}`)}
+                          sx={{
+                            borderColor: darkMode ? 'var(--primary)' : undefined,
+                            color: darkMode ? 'var(--primary)' : undefined,
+                            '&:hover': {
+                              backgroundColor: darkMode ? 'rgba(67, 97, 238, 0.1)' : undefined,
+                              borderColor: darkMode ? 'var(--primary)' : undefined,
+                            }
+                          }}
+                        >
+                          Review
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
+      </Box>
+    </Container>
   );
 };
 
