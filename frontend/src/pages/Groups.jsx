@@ -24,6 +24,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Container,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -33,6 +34,7 @@ import {
   Check as CheckIcon,
   Close as CloseIcon,
   PendingOutlined as PendingIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import * as groupApi from '../api/groupApi';
 
@@ -211,6 +213,19 @@ const Groups = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    try {
+      await loadGroups();
+      await loadMyGroups();
+      await loadPendingRequests();
+      await loadMyPendingRequests();
+      setSuccess('Groups refreshed successfully');
+    } catch (err) {
+      setError('Failed to refresh groups');
+      console.error('Error refreshing groups:', err);
+    }
+  };
+
   const renderGroupMembersTable = (groupId) => {
     const members = groupMembers[groupId] || [];
     if (!members || members.length === 0) {
@@ -357,209 +372,16 @@ const Groups = () => {
   };
 
   return (
-    <Box sx={{ p: 3, backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
-      <Typography variant="h4" gutterBottom sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-        Groups
-      </Typography>
-
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-
-      {user.profile?.role === 'teacher' && (
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenCreateDialog(true)}
-          sx={{ mb: 3 }}
-        >
-          Create New Group
-        </Button>
-      )}
-
-      <Typography variant="h5" gutterBottom sx={{ mt: 4, color: darkMode ? 'var(--text-primary)' : undefined }}>
-        My Groups
-      </Typography>
-      <List>
-        {myGroups.map((group) => (
-          <Card 
-            key={group.id} 
-            sx={{ 
-              mb: 2,
-              backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-              color: darkMode ? 'var(--text-primary)' : undefined,
-              border: darkMode ? '1px solid var(--border-color)' : undefined,
-              boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
-            }}
-          >
-            <CardContent>
-              <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
-              <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary', mt: 1 }}>
-                Created by: {group.teacher_name}
-              </Typography>
-              <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
-                Members: {group.member_count}
-              </Typography>
-              {user.profile?.role === 'teacher' && group.teacher === user.id && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>
-                    Group Members
-                  </Typography>
-                  {renderGroupMembersTable(group.id)}
-                  <Typography variant="subtitle2" sx={{ mb: 1, mt: 2, color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>
-                    Pending Requests
-                  </Typography>
-                  {renderPendingRequestsTable(group.id)}
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => {
-                      setGroupToDelete(group.id);
-                      setOpenDeleteDialog(true);
-                    }}
-                    sx={{ 
-                      mt: 2,
-                      borderColor: darkMode ? 'var(--danger)' : undefined,
-                      color: darkMode ? 'var(--danger)' : undefined,
-                      '&:hover': {
-                        backgroundColor: darkMode ? 'rgba(217, 4, 41, 0.1)' : undefined,
-                        borderColor: darkMode ? 'var(--danger)' : undefined,
-                      }
-                    }}
-                  >
-                    Delete Group
-                  </Button>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </List>
-
-      {user.profile?.role === 'student' && (
-        <>
-          <Typography variant="h5" gutterBottom sx={{ mt: 4, color: darkMode ? 'var(--text-primary)' : undefined }}>
-            Available Groups
+    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, mt: 4 }}>
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+            Groups
           </Typography>
-          <List>
-            {groups
-              .filter((group) => !myGroups.some((myGroup) => myGroup.id === group.id))
-              .map((group) => (
-                <Card 
-                  key={group.id} 
-                  sx={{ 
-                    mb: 2,
-                    backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-                    color: darkMode ? 'var(--text-primary)' : undefined,
-                    border: darkMode ? '1px solid var(--border-color)' : undefined,
-                    boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
-                        <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary', mt: 1 }}>
-                          Created by: {group.teacher_name}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
-                          Members: {group.member_count}
-                        </Typography>
-                      </div>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {myPendingRequests.includes(group.id) ? (
-                          <Chip
-                            icon={<PendingIcon />}
-                            label="Request Pending"
-                            color="warning"
-                            variant="outlined"
-                            sx={{
-                              borderColor: darkMode ? 'var(--warning)' : undefined,
-                              color: darkMode ? 'var(--warning)' : undefined,
-                              '& .MuiChip-icon': {
-                                color: darkMode ? 'var(--warning)' : undefined
-                              }
-                            }}
-                          />
-                        ) : (
-                          <Button
-                            variant="outlined"
-                            startIcon={<PersonAddIcon />}
-                            onClick={() => handleJoinRequest(group.id)}
-                            sx={{
-                              borderColor: darkMode ? 'var(--primary)' : undefined,
-                              color: darkMode ? 'var(--primary)' : undefined,
-                              '&:hover': {
-                                backgroundColor: darkMode ? 'rgba(67, 97, 238, 0.1)' : undefined,
-                                borderColor: darkMode ? 'var(--primary)' : undefined,
-                              }
-                            }}
-                          >
-                            Request to Join
-                          </Button>
-                        )}
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
-          </List>
-        </>
-      )}
-
-      <Dialog 
-        open={openCreateDialog} 
-        onClose={() => setOpenCreateDialog(false)} 
-        PaperProps={{
-          sx: {
-            backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-            color: darkMode ? 'var(--text-primary)' : undefined,
-            border: darkMode ? '1px solid var(--border-color)' : undefined,
-            boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
-          }
-        }}
-      >
-        <DialogTitle sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined, paddingBottom: 2 }}>Create New Group</DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Group Name"
-            fullWidth
-            value={newGroupName}
-            onChange={(e) => setNewGroupName(e.target.value)}
-            sx={{
-              '& .MuiInputLabel-root': {
-                color: darkMode ? 'var(--text-secondary)' : undefined
-              },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: darkMode ? 'var(--border-color)' : undefined
-                },
-                '&:hover fieldset': {
-                  borderColor: darkMode ? 'var(--primary)' : undefined
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: darkMode ? 'var(--primary)' : undefined
-                },
-                color: darkMode ? 'var(--text-primary)' : undefined,
-                backgroundColor: darkMode ? 'var(--bg-main)' : undefined
-              }
-            }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ padding: 2, borderTop: darkMode ? '1px solid var(--border-color)' : undefined }}>
-          <Button 
-            onClick={() => setOpenCreateDialog(false)}
-            sx={{
-              color: darkMode ? 'var(--text-secondary)' : undefined,
-            }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCreateGroup} 
+          <Button
             variant="contained"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
             sx={{
               backgroundColor: darkMode ? 'var(--primary)' : undefined,
               '&:hover': {
@@ -567,61 +389,271 @@ const Groups = () => {
               }
             }}
           >
-            Create
+            Refresh
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
 
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => {
-          setOpenDeleteDialog(false);
-          setGroupToDelete(null);
-        }}
-        PaperProps={{
-          sx: {
-            backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-            color: darkMode ? 'var(--text-primary)' : undefined,
-            border: darkMode ? '1px solid var(--border-color)' : undefined,
-            boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
-          }
-        }}
-      >
-        <DialogTitle sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined, paddingBottom: 2 }}>Delete Group</DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
-          <DialogContentText sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>
-            Are you sure you want to delete this group? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ padding: 2, borderTop: darkMode ? '1px solid var(--border-color)' : undefined }}>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+
+        {user.profile?.role === 'teacher' && (
           <Button
-            onClick={() => {
-              setOpenDeleteDialog(false);
-              setGroupToDelete(null);
-            }}
-            sx={{
-              color: darkMode ? 'var(--text-secondary)' : undefined,
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => handleDeleteGroup(groupToDelete)}
-            color="error"
             variant="contained"
-            autoFocus
-            sx={{
-              backgroundColor: darkMode ? 'var(--danger)' : undefined,
-              '&:hover': {
-                backgroundColor: darkMode ? '#b60321' : undefined,
-              }
-            }}
+            startIcon={<AddIcon />}
+            onClick={() => setOpenCreateDialog(true)}
+            sx={{ mb: 3 }}
           >
-            Delete
+            Create New Group
           </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        )}
+
+        <Typography variant="h5" gutterBottom sx={{ mt: 4, color: darkMode ? 'var(--text-primary)' : undefined }}>
+          My Groups
+        </Typography>
+        <List>
+          {myGroups.map((group) => (
+            <Card 
+              key={group.id} 
+              sx={{ 
+                mb: 2,
+                backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                color: darkMode ? 'var(--text-primary)' : undefined,
+                border: darkMode ? '1px solid var(--border-color)' : undefined,
+                boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
+                <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary', mt: 1 }}>
+                  Created by: {group.teacher_name}
+                </Typography>
+                <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
+                  Members: {group.member_count}
+                </Typography>
+                {user.profile?.role === 'teacher' && group.teacher === user.id && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>
+                      Group Members
+                    </Typography>
+                    {renderGroupMembersTable(group.id)}
+                    <Typography variant="subtitle2" sx={{ mb: 1, mt: 2, color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>
+                      Pending Requests
+                    </Typography>
+                    {renderPendingRequestsTable(group.id)}
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => {
+                        setGroupToDelete(group.id);
+                        setOpenDeleteDialog(true);
+                      }}
+                      sx={{ 
+                        mt: 2,
+                        borderColor: darkMode ? 'var(--danger)' : undefined,
+                        color: darkMode ? 'var(--danger)' : undefined,
+                        '&:hover': {
+                          backgroundColor: darkMode ? 'rgba(217, 4, 41, 0.1)' : undefined,
+                          borderColor: darkMode ? 'var(--danger)' : undefined,
+                        }
+                      }}
+                    >
+                      Delete Group
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </List>
+
+        {user.profile?.role === 'student' && (
+          <>
+            <Typography variant="h5" gutterBottom sx={{ mt: 4, color: darkMode ? 'var(--text-primary)' : undefined }}>
+              Available Groups
+            </Typography>
+            <List>
+              {groups
+                .filter((group) => !myGroups.some((myGroup) => myGroup.id === group.id))
+                .map((group) => (
+                  <Card 
+                    key={group.id} 
+                    sx={{ 
+                      mb: 2,
+                      backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                      color: darkMode ? 'var(--text-primary)' : undefined,
+                      border: darkMode ? '1px solid var(--border-color)' : undefined,
+                      boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+                    }}
+                  >
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                          <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
+                          <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary', mt: 1 }}>
+                            Created by: {group.teacher_name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
+                            Members: {group.member_count}
+                          </Typography>
+                        </div>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {myPendingRequests.includes(group.id) ? (
+                            <Chip
+                              icon={<PendingIcon />}
+                              label="Request Pending"
+                              color="warning"
+                              variant="outlined"
+                              sx={{
+                                borderColor: darkMode ? 'var(--warning)' : undefined,
+                                color: darkMode ? 'var(--warning)' : undefined,
+                                '& .MuiChip-icon': {
+                                  color: darkMode ? 'var(--warning)' : undefined
+                                }
+                              }}
+                            />
+                          ) : (
+                            <Button
+                              variant="outlined"
+                              startIcon={<PersonAddIcon />}
+                              onClick={() => handleJoinRequest(group.id)}
+                              sx={{
+                                borderColor: darkMode ? 'var(--primary)' : undefined,
+                                color: darkMode ? 'var(--primary)' : undefined,
+                                '&:hover': {
+                                  backgroundColor: darkMode ? 'rgba(67, 97, 238, 0.1)' : undefined,
+                                  borderColor: darkMode ? 'var(--primary)' : undefined,
+                                }
+                              }}
+                            >
+                              Request to Join
+                            </Button>
+                          )}
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+            </List>
+          </>
+        )}
+
+        <Dialog 
+          open={openCreateDialog} 
+          onClose={() => setOpenCreateDialog(false)} 
+          PaperProps={{
+            sx: {
+              backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+              color: darkMode ? 'var(--text-primary)' : undefined,
+              border: darkMode ? '1px solid var(--border-color)' : undefined,
+              boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined, paddingBottom: 2 }}>Create New Group</DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Group Name"
+              fullWidth
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              sx={{
+                '& .MuiInputLabel-root': {
+                  color: darkMode ? 'var(--text-secondary)' : undefined
+                },
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: darkMode ? 'var(--border-color)' : undefined
+                  },
+                  '&:hover fieldset': {
+                    borderColor: darkMode ? 'var(--primary)' : undefined
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: darkMode ? 'var(--primary)' : undefined
+                  },
+                  color: darkMode ? 'var(--text-primary)' : undefined,
+                  backgroundColor: darkMode ? 'var(--bg-main)' : undefined
+                }
+              }}
+            />
+          </DialogContent>
+          <DialogActions sx={{ padding: 2, borderTop: darkMode ? '1px solid var(--border-color)' : undefined }}>
+            <Button 
+              onClick={() => setOpenCreateDialog(false)}
+              sx={{
+                color: darkMode ? 'var(--text-secondary)' : undefined,
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateGroup} 
+              variant="contained"
+              sx={{
+                backgroundColor: darkMode ? 'var(--primary)' : undefined,
+                '&:hover': {
+                  backgroundColor: darkMode ? 'var(--primary-dark)' : undefined,
+                }
+              }}
+            >
+              Create
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => {
+            setOpenDeleteDialog(false);
+            setGroupToDelete(null);
+          }}
+          PaperProps={{
+            sx: {
+              backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+              color: darkMode ? 'var(--text-primary)' : undefined,
+              border: darkMode ? '1px solid var(--border-color)' : undefined,
+              boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined, paddingBottom: 2 }}>Delete Group</DialogTitle>
+          <DialogContent sx={{ mt: 2 }}>
+            <DialogContentText sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>
+              Are you sure you want to delete this group? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ padding: 2, borderTop: darkMode ? '1px solid var(--border-color)' : undefined }}>
+            <Button
+              onClick={() => {
+                setOpenDeleteDialog(false);
+                setGroupToDelete(null);
+              }}
+              sx={{
+                color: darkMode ? 'var(--text-secondary)' : undefined,
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleDeleteGroup(groupToDelete)}
+              color="error"
+              variant="contained"
+              autoFocus
+              sx={{
+                backgroundColor: darkMode ? 'var(--danger)' : undefined,
+                '&:hover': {
+                  backgroundColor: darkMode ? '#b60321' : undefined,
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </Container>
   );
 };
 
