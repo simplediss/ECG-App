@@ -78,6 +78,41 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
             return QuizAttempt.objects.all()
         return QuizAttempt.objects.filter(user=user)
 
+    @action(detail=False, methods=['get'], url_path='by-username/(?P<username>[^/.]+)')
+    def by_username(self, request, username=None):
+        """Get all quiz attempts for a specific student."""
+        try:
+            # Check if the requesting user has permission to view this data
+            if not (request.user.is_staff or 
+                   (hasattr(request.user, 'profile') and 
+                    request.user.profile.role == 'teacher') or 
+                   request.user.username == username):
+                return Response(
+                    {'error': 'You do not have permission to view this data'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Get the user's quiz attempts
+            attempts = QuizAttempt.objects.filter(
+                user__username=username
+            ).select_related(
+                'quiz',
+                'user'
+            ).prefetch_related(
+                'question_attempts',
+                'question_attempts__question',
+                'question_attempts__selected_choice'
+            ).order_by('-started_at')
+
+            serializer = self.get_serializer(attempts, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     def create(self, request, *args, **kwargs):
         # Get the quiz
         quiz_id = request.data.get('quiz')

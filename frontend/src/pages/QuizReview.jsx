@@ -68,9 +68,6 @@ const QuizReview = () => {
     <div className="quiz-review-container">
       <div className="quiz-review-header">
         <h1>Quiz Review</h1>
-        <button onClick={() => navigate('/quiz-history')} className="back-button">
-          Back to Quiz History
-        </button>
       </div>
 
       <div className="quiz-review-summary">

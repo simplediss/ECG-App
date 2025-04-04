@@ -7,6 +7,7 @@ import {
   CardContent,
   Typography,
   Container,
+  Grid,
   Paper,
   Table,
   TableBody,
@@ -16,8 +17,18 @@ import {
   TableRow,
   Button,
   Alert,
+  LinearProgress,
+  Chip,
+  Divider,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
+import {
+  ArrowBack as ArrowBackIcon,
+  School as SchoolIcon,
+  Assessment as AssessmentIcon,
+  Timeline as TimelineIcon,
+  Person as PersonIcon,
+  Visibility as VisibilityIcon,
+} from '@mui/icons-material';
 import * as userApi from '../api/userApi';
 
 const StudentOverview = () => {
@@ -25,6 +36,7 @@ const StudentOverview = () => {
   const navigate = useNavigate();
   const { darkMode } = useTheme();
   const [student, setStudent] = useState(null);
+  const [quizAttempts, setQuizAttempts] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -32,8 +44,12 @@ const StudentOverview = () => {
     const fetchStudentData = async () => {
       try {
         setLoading(true);
-        const data = await userApi.getStudentDetails(username);
-        setStudent(data);
+        const [studentData, attemptsData] = await Promise.all([
+          userApi.getStudentDetails(username),
+          userApi.getStudentQuizAttempts(username)
+        ]);
+        setStudent(studentData);
+        setQuizAttempts(attemptsData);
         setError('');
       } catch (err) {
         console.error('Error fetching student data:', err);
@@ -48,6 +64,25 @@ const StudentOverview = () => {
     }
   }, [username]);
 
+  const calculatePerformanceMetrics = () => {
+    if (!quizAttempts.length) return null;
+
+    const totalAttempts = quizAttempts.length;
+    const completedAttempts = quizAttempts.filter(attempt => attempt.completed_at).length;
+    const averageScore = quizAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0) / completedAttempts;
+    const bestScore = Math.max(...quizAttempts.map(attempt => attempt.score || 0));
+    
+    return {
+      totalAttempts,
+      completedAttempts,
+      averageScore,
+      bestScore,
+      completionRate: (completedAttempts / totalAttempts) * 100
+    };
+  };
+
+  const metrics = calculatePerformanceMetrics();
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -61,11 +96,14 @@ const StudentOverview = () => {
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{ mb: 3 }}>
           <Button
-            startIcon={<ArrowBackIcon />}
+            startIcon={<ArrowBackIcon sx={{ color: darkMode ? '#ffffff' : undefined }} />}
             onClick={() => navigate(-1)}
             sx={{
-              color: darkMode ? 'var(--text-primary)' : undefined,
-              mb: 2
+              color: darkMode ? '#ffffff' : undefined,
+              mb: 2,
+              '&:hover': {
+                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.08)' : undefined,
+              }
             }}
           >
             Back to Groups
@@ -81,11 +119,14 @@ const StudentOverview = () => {
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{ mb: 3 }}>
           <Button
-            startIcon={<ArrowBackIcon />}
+            startIcon={<ArrowBackIcon sx={{ color: darkMode ? '#ffffff' : undefined }} />}
             onClick={() => navigate(-1)}
             sx={{
-              color: darkMode ? 'var(--text-primary)' : undefined,
-              mb: 2
+              color: darkMode ? '#ffffff' : undefined,
+              mb: 2,
+              '&:hover': {
+                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.08)' : undefined,
+              }
             }}
           >
             Back to Groups
@@ -96,117 +137,407 @@ const StudentOverview = () => {
     );
   }
 
-  const studentInfo = [
-    { label: 'Username', value: student?.username || 'N/A' },
-    { 
-      label: 'Full Name', 
-      value: student?.first_name && student?.last_name 
-        ? `${student.first_name} ${student.last_name}` 
-        : 'N/A' 
-    },
-    { label: 'Email', value: student?.email || 'N/A' },
-    { label: 'Gender', value: student?.gender || 'Not specified' },
-    { label: 'Role', value: student?.role?.toUpperCase() || 'N/A' },
-  ];
-
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 3 }}>
         <Button
-          startIcon={<ArrowBackIcon />}
+          startIcon={<ArrowBackIcon sx={{ color: darkMode ? '#ffffff' : undefined }} />}
           onClick={() => navigate(-1)}
           sx={{
-            color: darkMode ? 'var(--text-primary)' : undefined,
-            mb: 2
+            color: darkMode ? '#ffffff' : undefined,
+            mb: 2,
+            '&:hover': {
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.08)' : undefined,
+            }
           }}
         >
           Back to Groups
         </Button>
       </Box>
 
-      <Card 
-        sx={{ 
-          mb: 3,
-          backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
-          color: darkMode ? 'var(--text-primary)' : undefined,
-          border: darkMode ? '1px solid var(--border-color)' : undefined,
-          boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
-        }}
-      >
-        <CardContent>
-          <Typography variant="h4" gutterBottom sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-            Student Overview
-          </Typography>
-          
-          <TableContainer 
-            component={Paper} 
+      <Grid container spacing={3}>
+        {/* Student Profile Card */}
+        <Grid item xs={12} md={4}>
+          <Card 
             sx={{ 
-              mt: 2,
-              backgroundColor: darkMode ? 'var(--bg-main)' : undefined,
-              color: darkMode ? 'var(--text-primary)' : undefined,
+              height: '100%',
+              backgroundColor: darkMode ? 'var(--bg-card)' : undefined,
+              color: darkMode ? '#ffffff' : 'var(--text-primary)',
               border: darkMode ? '1px solid var(--border-color)' : undefined,
-              boxShadow: darkMode ? 'var(--box-shadow-sm)' : undefined,
+              boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
             }}
           >
-            <Table>
-              <TableHead sx={{ backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
-                <TableRow>
-                  <TableCell 
-                    sx={{ 
-                      color: darkMode ? 'var(--text-primary)' : undefined, 
-                      fontWeight: '600', 
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
-                      width: '30%'
-                    }}
-                  >
-                    Field
-                  </TableCell>
-                  <TableCell 
-                    sx={{ 
-                      color: darkMode ? 'var(--text-primary)' : undefined, 
-                      fontWeight: '600', 
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined 
-                    }}
-                  >
-                    Value
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {studentInfo.map((info) => (
-                  <TableRow 
-                    key={info.label}
-                    sx={{ 
-                      '&:hover': { backgroundColor: darkMode ? 'var(--bg-white)' : undefined },
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                    }}
-                  >
-                    <TableCell 
-                      component="th" 
-                      scope="row"
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <PersonIcon sx={{ mr: 1, color: darkMode ? '#ffffff' : undefined }} />
+                <Typography variant="h5" component="div" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  Profile
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 2, backgroundColor: darkMode ? 'rgba(255,255,255,0.12)' : undefined }} />
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
+                  Username
+                </Typography>
+                <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  <strong>{student.username}</strong>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
+                  Full Name
+                </Typography>
+                <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  <strong>{student.first_name} {student.last_name}</strong>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
+                  Email
+                </Typography>
+                <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  <strong>{student.email}</strong>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
+                  Role
+                </Typography>
+                <Chip 
+                  label={student.role.toUpperCase()} 
+                  color="primary"
+                  size="small"
+                  sx={{ backgroundColor: darkMode ? '#58a6ff' : undefined, color: darkMode ? '#000000' : undefined }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Performance Metrics Card */}
+        <Grid item xs={12} md={8}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              backgroundColor: darkMode ? 'var(--bg-card)' : undefined,
+              color: darkMode ? '#ffffff' : 'var(--text-primary)',
+              border: darkMode ? '1px solid var(--border-color)' : undefined,
+              boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+            }}
+          >
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <AssessmentIcon sx={{ mr: 1, color: darkMode ? '#ffffff' : undefined }} />
+                <Typography variant="h5" component="div" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  Performance Metrics
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 3, backgroundColor: darkMode ? 'rgba(255,255,255,0.12)' : undefined }} />
+              {metrics ? (
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Box 
                       sx={{ 
-                        color: darkMode ? 'var(--text-primary)' : undefined,
-                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
-                        fontWeight: '500'
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
-                      {info.label}
-                    </TableCell>
-                    <TableCell 
+                      <Typography variant="subtitle2" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary', textAlign: 'center' }}>
+                        Average Score
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: darkMode ? '#58a6ff' : 'primary.main', textAlign: 'center', mt: 1 }}>
+                        {metrics.averageScore.toFixed(1)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box 
                       sx={{ 
-                        color: darkMode ? 'var(--text-primary)' : undefined,
-                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
                     >
-                      {info.value}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+                      <Typography variant="subtitle2" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary', textAlign: 'center' }}>
+                        Best Score
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: darkMode ? '#58a6ff' : 'primary.main', textAlign: 'center', mt: 1 }}>
+                        {metrics.bestScore.toFixed(0)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box 
+                      sx={{ 
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary', textAlign: 'center' }}>
+                        Completion Rate
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, width: '100%' }}>
+                        <Box sx={{ width: '100%', mr: 1 }}>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={metrics.completionRate} 
+                            sx={{ 
+                              height: 8, 
+                              borderRadius: 4,
+                              '& .MuiLinearProgress-bar': {
+                                backgroundColor: darkMode ? '#58a6ff' : undefined
+                              }
+                            }}
+                          />
+                        </Box>
+                        <Typography variant="body2" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary' }}>
+                          {metrics.completionRate.toFixed(0)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box 
+                      sx={{ 
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary', textAlign: 'center' }}>
+                        Total Attempts
+                      </Typography>
+                      <Typography variant="h4" sx={{ color: darkMode ? '#58a6ff' : 'primary.main', textAlign: 'center', mt: 1 }}>
+                        {metrics.totalAttempts}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              ) : (
+                <Alert severity="info">No quiz attempts found for this student.</Alert>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Quiz History Card */}
+        <Grid item xs={12}>
+          <Card 
+            sx={{ 
+              backgroundColor: darkMode ? 'var(--bg-card)' : undefined,
+              color: darkMode ? '#ffffff' : 'var(--text-primary)',
+              border: darkMode ? '1px solid var(--border-color)' : undefined,
+              boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+            }}
+          >
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <TimelineIcon sx={{ mr: 1, color: darkMode ? '#ffffff' : undefined }} />
+                <Typography variant="h5" component="div" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  Quiz History
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 2, backgroundColor: darkMode ? 'rgba(255,255,255,0.12)' : undefined }} />
+              
+              {quizAttempts.length > 0 ? (
+                <TableContainer 
+                  component={Paper} 
+                  elevation={0}
+                  sx={{ 
+                    backgroundColor: darkMode ? 'rgba(22, 27, 34, 0.7)' : undefined,
+                    color: darkMode ? '#ffffff' : 'var(--text-primary)',
+                    border: darkMode ? '1px solid var(--border-color)' : undefined,
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <Table>
+                    <TableHead sx={{ backgroundColor: darkMode ? 'rgba(36, 41, 46, 0.9)' : 'rgba(0, 0, 0, 0.04)' }}>
+                      <TableRow>
+                        <TableCell 
+                          sx={{ 
+                            color: darkMode ? '#ffffff' : undefined, 
+                            fontWeight: 600,
+                            borderBottom: darkMode ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            textAlign: 'center'
+                          }}
+                        >
+                          Started At
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            color: darkMode ? '#ffffff' : undefined, 
+                            fontWeight: 600,
+                            borderBottom: darkMode ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            textAlign: 'center'
+                          }}
+                        >
+                          Completed At
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            color: darkMode ? '#ffffff' : undefined, 
+                            fontWeight: 600,
+                            borderBottom: darkMode ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            textAlign: 'center'
+                          }}
+                        >
+                          Questions
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            color: darkMode ? '#ffffff' : undefined, 
+                            fontWeight: 600,
+                            borderBottom: darkMode ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            textAlign: 'center'
+                          }}
+                        >
+                          Score
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            color: darkMode ? '#ffffff' : undefined, 
+                            fontWeight: 600,
+                            borderBottom: darkMode ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            textAlign: 'center'
+                          }}
+                        >
+                          Status
+                        </TableCell>
+                        <TableCell 
+                          sx={{ 
+                            color: darkMode ? '#ffffff' : undefined, 
+                            fontWeight: 600,
+                            borderBottom: darkMode ? '1px solid rgba(255,255,255,0.12)' : undefined,
+                            textAlign: 'center'
+                          }}
+                        >
+                          Actions
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {quizAttempts.map((attempt, index) => (
+                        <TableRow 
+                          key={attempt.id} 
+                          sx={{ 
+                            '&:nth-of-type(odd)': { 
+                              backgroundColor: darkMode ? 'rgba(36, 41, 46, 0.6)' : 'rgba(0, 0, 0, 0.02)' 
+                            },
+                            '&:hover': { 
+                              backgroundColor: darkMode ? 'rgba(22, 27, 34, 0.9)' : 'rgba(0, 0, 0, 0.04)' 
+                            },
+                            borderBottom: darkMode 
+                              ? index === quizAttempts.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.08)'
+                              : undefined
+                          }}
+                        >
+                          <TableCell sx={{ color: darkMode ? '#ffffff' : undefined, borderBottom: 'none', textAlign: 'center' }}>
+                            {new Date(attempt.started_at).toLocaleDateString()}
+                            <br />
+                            {new Date(attempt.started_at).toLocaleTimeString(undefined, { hour12: false })}
+                          </TableCell>
+                          <TableCell sx={{ color: darkMode ? '#ffffff' : undefined, borderBottom: 'none', textAlign: 'center' }}>
+                            {attempt.completed_at 
+                              ? <>
+                                  {new Date(attempt.completed_at).toLocaleDateString()}
+                                  <br />
+                                  {new Date(attempt.completed_at).toLocaleTimeString(undefined, { hour12: false })}
+                                </>
+                              : 'In Progress'}
+                          </TableCell>
+                          <TableCell sx={{ color: darkMode ? '#ffffff' : undefined, borderBottom: 'none', textAlign: 'center' }}>
+                            <Typography sx={{ fontWeight: 500 }}>
+                              {attempt.correct_answers} <span style={{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)' }}>/</span> {attempt.total_questions}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.5)' : 'text.secondary' }}>
+                              correct
+                            </Typography>
+                          </TableCell>
+                          <TableCell sx={{ color: darkMode ? '#ffffff' : undefined, borderBottom: 'none', textAlign: 'center' }}>
+                            {attempt.score !== undefined ? (
+                              <Typography 
+                                sx={{ 
+                                  color: attempt.score >= 70 
+                                    ? (darkMode ? '#7ee787' : 'success.main') 
+                                    : attempt.score >= 50 
+                                      ? (darkMode ? '#f0883e' : 'warning.main') 
+                                      : (darkMode ? '#f85149' : 'error.main'),
+                                  fontWeight: 600
+                                }}
+                              >
+                                {attempt.score.toFixed(1)}%
+                              </Typography>
+                            ) : 'N/A'}
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: 'none', textAlign: 'center' }}>
+                            <Chip 
+                              label={attempt.completed_at ? 'Completed' : 'In Progress'} 
+                              color={attempt.completed_at ? 'success' : 'warning'}
+                              size="small"
+                              sx={{ 
+                                fontWeight: 500,
+                                backgroundColor: attempt.completed_at 
+                                  ? (darkMode ? 'rgba(126, 231, 135, 0.2)' : undefined) 
+                                  : (darkMode ? 'rgba(240, 136, 62, 0.2)' : undefined),
+                                color: attempt.completed_at 
+                                  ? (darkMode ? '#7ee787' : undefined) 
+                                  : (darkMode ? '#f0883e' : undefined),
+                                borderColor: attempt.completed_at 
+                                  ? (darkMode ? '#7ee787' : undefined) 
+                                  : (darkMode ? '#f0883e' : undefined),
+                                border: darkMode ? '1px solid' : undefined,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ borderBottom: 'none', textAlign: 'center' }}>
+                            <Button
+                              variant={darkMode ? "outlined" : "contained"}
+                              size="small"
+                              startIcon={<VisibilityIcon />}
+                              onClick={() => navigate(`/quiz-review/${attempt.id}`)}
+                              sx={{
+                                backgroundColor: darkMode ? 'transparent' : 'primary.main',
+                                color: darkMode ? '#58a6ff' : '#fff',
+                                borderColor: darkMode ? '#58a6ff' : undefined,
+                                border: darkMode ? '1px solid' : 'none',
+                                fontWeight: 500,
+                                borderRadius: '4px',
+                                textTransform: 'none',
+                                '&:hover': {
+                                  backgroundColor: darkMode ? 'rgba(88, 166, 255, 0.1)' : undefined,
+                                }
+                              }}
+                            >
+                              Review
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography variant="body1" sx={{ color: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary' }}>
+                    No quiz attempts found for this student.
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Container>
   );
 };
