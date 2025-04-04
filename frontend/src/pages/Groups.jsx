@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -35,6 +36,7 @@ import {
   Close as CloseIcon,
   PendingOutlined as PendingIcon,
   Refresh as RefreshIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import * as groupApi from '../api/groupApi';
 
@@ -42,6 +44,7 @@ import * as groupApi from '../api/groupApi';
 const Groups = () => {
   const { user } = useAuth();
   const { darkMode } = useTheme();
+  const navigate = useNavigate();
   const [groups, setGroups] = useState([]);
   const [myGroups, setMyGroups] = useState([]);
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -276,6 +279,15 @@ const Groups = () => {
                 </TableCell>
                 <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>{member.email}</TableCell>
                 <TableCell align="right" sx={{ borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => navigate(`/student/${member.username}`)}
+                    title="View Student Overview"
+                    sx={{ backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : undefined, mr: 1 }}
+                  >
+                    <VisibilityIcon />
+                  </IconButton>
                   <IconButton
                     size="small"
                     color="error"

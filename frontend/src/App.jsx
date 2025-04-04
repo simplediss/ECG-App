@@ -13,6 +13,7 @@ import QuizHistory from './pages/QuizHistory';
 import QuizReview from './pages/QuizReview';
 import Groups from './pages/Groups';
 import Navbar from './components/Navbar';
+import StudentOverview from './pages/StudentOverview';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -150,6 +151,14 @@ const AppContent = () => {
             <PrivateRoute>
               <div>Settings Page (Coming Soon)</div>
             </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/:username"
+          element={
+            <TeacherRoute>
+              <StudentOverview />
+            </TeacherRoute>
           }
         />
         <Route path="/" element={<Navigate to="/home" />} />

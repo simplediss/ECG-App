@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/register/', api_register, name='api_register'),
     # User Management API endpoints
     path('api/user-profile/<int:profile_id>/', update_user_profile, name='update_user_profile'),
+    path('api/profiles/by-username/<str:username>/', ProfileByUsernameView.as_view(), name='profile-by-username'),
     # GeneralAPI endpoints
     path('api/check-answer/', CheckAnswerView.as_view(), name='check-answer'),
     # Image serving endpoint - handle both with and without .png extension
