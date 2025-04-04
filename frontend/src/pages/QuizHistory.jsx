@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchQuizHistory } from '../api/quizApi';
 import { useAuth } from '../context/AuthContext';
-import '../styles/QuizHistory.css';
+import '../styles/pages/QuizHistory.css';
 
 const QuizHistory = () => {
   const navigate = useNavigate();

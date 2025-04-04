@@ -118,6 +118,7 @@ class PersonalizedQuizGenerator(QuizGenerator):
         self.personalization_weight = personalization_weight  # How much to weight personalization vs randomness
         self.recency_weight = recency_weight  # How much to weight recent attempts vs older ones
         self.choices_per_question = choices_per_question  # Number of choices per question (including correct answer)
+        self.max_quizzes = 10  # Number of quizzes to reach max personalization
 
     def get_user_performance_by_label(self):
         """Calculate user's performance for each doc label."""
@@ -181,12 +182,7 @@ class PersonalizedQuizGenerator(QuizGenerator):
         ).count()
 
         # Gradually increase personalization as user takes more quizzes
-        # Start with 0.3 personalization and increase to personalization_weight
-        min_personalization = 0.3
-        max_quizzes = 10  # Number of quizzes to reach max personalization
-        personalization = min_personalization + (self.personalization_weight - min_personalization) * min(1, total_quizzes / max_quizzes)
-
-        return personalization
+        return self.personalization_weight * min(1, total_quizzes / self.max_quizzes)
 
     def select_samples(self, label_performance):
         """Select samples based on user's performance and personalization factor."""
@@ -261,4 +257,4 @@ class PersonalizedQuizGenerator(QuizGenerator):
             # Create all choices
             self.create_choices(question, correct_label, selected_incorrect)
 
-        return quiz 
+        return quiz

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchQuizAttempt } from '../api/quizApi';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../api/axiosInstance';
-import '../styles/QuizReview.css';
+import '../styles/pages/QuizReview.css';
 
 const QuizReview = () => {
   const { attemptId } = useParams();
