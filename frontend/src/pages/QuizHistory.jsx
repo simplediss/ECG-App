@@ -111,9 +111,9 @@ const QuizHistory = () => {
 
   const filterQuizHistory = () => {
     return quizHistory.filter(attempt => {
-      // Search filter
+      // Search filter - only for teachers/admins
       const searchLower = searchTerm.toLowerCase();
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = !isTeacherOrAdmin || searchTerm === '' || 
         attempt.user?.username?.toLowerCase().includes(searchLower) ||
         attempt.user?.first_name?.toLowerCase().includes(searchLower) ||
         attempt.user?.last_name?.toLowerCase().includes(searchLower) ||
@@ -231,32 +231,34 @@ const QuizHistory = () => {
             mb: 3,
             flexWrap: 'wrap'
           }}>
-            <TextField
-              label="Search"
-              variant="outlined"
-              size="small"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{
-                minWidth: 200,
-                '& .MuiInputLabel-root': {
-                  color: darkMode ? 'var(--text-secondary)' : undefined
-                },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: darkMode ? 'var(--border-color)' : undefined
+            {isTeacherOrAdmin && (
+              <TextField
+                label="Search"
+                variant="outlined"
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{
+                  minWidth: 200,
+                  '& .MuiInputLabel-root': {
+                    color: darkMode ? 'var(--text-secondary)' : undefined
                   },
-                  '&:hover fieldset': {
-                    borderColor: darkMode ? 'var(--primary)' : undefined
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: darkMode ? 'var(--primary)' : undefined
-                  },
-                  color: darkMode ? 'var(--text-primary)' : undefined,
-                  backgroundColor: darkMode ? 'var(--bg-white)' : undefined
-                }
-              }}
-            />
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: darkMode ? 'var(--border-color)' : undefined
+                    },
+                    '&:hover fieldset': {
+                      borderColor: darkMode ? 'var(--primary)' : undefined
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: darkMode ? 'var(--primary)' : undefined
+                    },
+                    color: darkMode ? 'var(--text-primary)' : undefined,
+                    backgroundColor: darkMode ? 'var(--bg-white)' : undefined
+                  }
+                }}
+              />
+            )}
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Date</InputLabel>
               <Select
@@ -317,13 +319,15 @@ const QuizHistory = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ 
-                    color: darkMode ? 'var(--text-primary)' : undefined, 
-                    fontWeight: '600',
-                    borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
-                  }}>
-                    Student
-                  </TableCell>
+                  {isTeacherOrAdmin && (
+                    <TableCell sx={{ 
+                      color: darkMode ? 'var(--text-primary)' : undefined, 
+                      fontWeight: '600',
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                    }}>
+                      Student
+                    </TableCell>
+                  )}
                   <TableCell sx={{ 
                     color: darkMode ? 'var(--text-primary)' : undefined, 
                     fontWeight: '600',
@@ -372,16 +376,18 @@ const QuizHistory = () => {
                       borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
                     }}
                   >
-                    <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                          {attempt.user?.username || 'Unknown Student'}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
-                          {attempt.user?.first_name} {attempt.user?.last_name}
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                    {isTeacherOrAdmin && (
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            {attempt.user?.username || 'Unknown Student'}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
+                            {attempt.user?.first_name} {attempt.user?.last_name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    )}
                     <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
                       {attempt.completed_at ? formatDate(attempt.completed_at) : 'In Progress'}
                     </TableCell>
@@ -408,10 +414,7 @@ const QuizHistory = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => isTeacherOrAdmin ? 
-                          navigate(`/quiz-review/${attempt.id}`) : 
-                          navigate('/quiz', { state: { retakeQuizId: attempt.quiz?.id } })
-                        }
+                        onClick={() => navigate(`/quiz-review/${attempt.id}`)}
                         sx={{
                           borderColor: darkMode ? 'var(--primary)' : undefined,
                           color: darkMode ? 'var(--primary)' : undefined,
@@ -421,7 +424,7 @@ const QuizHistory = () => {
                           }
                         }}
                       >
-                        {isTeacherOrAdmin ? 'Review' : 'Retake'}
+                        Review
                       </Button>
                     </TableCell>
                   </TableRow>

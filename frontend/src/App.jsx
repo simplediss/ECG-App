@@ -123,9 +123,9 @@ const AppContent = () => {
         <Route
           path="/quiz-review/:attemptId"
           element={
-            <TeacherOrAdminRoute>
+            <PrivateRoute>
               <QuizReview />
-            </TeacherOrAdminRoute>
+            </PrivateRoute>
           }
         />
         <Route
