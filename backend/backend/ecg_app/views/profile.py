@@ -1,4 +1,5 @@
-from rest_framework import viewsets, status
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -30,6 +31,15 @@ class ProfileViewSet(viewsets.ModelViewSet):
         
         print(f"Returning {queryset.count()} profiles")
         return queryset.select_related('user')  # Add select_related to optimize query
+
+
+class ProfileByUsernameView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
+    serializer_class = ProfileSerializer
+
+    def get_object(self):
+        username = self.kwargs['username']
+        return get_object_or_404(Profile, user__username=username)
 
 
 @api_view(['PUT'])

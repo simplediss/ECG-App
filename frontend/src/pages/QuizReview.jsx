@@ -68,19 +68,12 @@ const QuizReview = () => {
     <div className="quiz-review-container">
       <div className="quiz-review-header">
         <h1>Quiz Review</h1>
-        <button onClick={() => navigate('/quiz-history')} className="back-button">
-          Back to Quiz History
-        </button>
       </div>
 
       <div className="quiz-review-summary">
         <div className="summary-card">
           <h3>Student</h3>
-          <p>{quizAttempt.user?.username || 'Unknown Student'}</p>
-        </div>
-        <div className="summary-card">
-          <h3>Quiz</h3>
-          <p>{quizAttempt.quiz?.title || 'Untitled Quiz'}</p>
+          <p>{quizAttempt.user?.first_name && quizAttempt.user?.last_name ? `${quizAttempt.user.first_name} ${quizAttempt.user.last_name}` : quizAttempt.user?.username || 'Unknown Student'}</p>
         </div>
         <div className="summary-card">
           <h3>Date</h3>
@@ -120,21 +113,6 @@ const QuizReview = () => {
                   />
                 </div>
               )}
-
-              <div className="answer-summary">
-                <div className="student-answer">
-                  <h4>Student's Answer:</h4>
-                  <p className={attempt.is_correct ? 'correct-text' : 'incorrect-text'}>
-                    {attempt.selected_choice?.text || 'No answer selected'}
-                  </p>
-                </div>
-                <div className="correct-answer">
-                  <h4>Correct Answer:</h4>
-                  <p className="correct-text">
-                    {correctChoice?.text || 'No correct answer defined'}
-                  </p>
-                </div>
-              </div>
               
               <div className="choices">
                 {attempt.question?.choices?.map((choice) => (

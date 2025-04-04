@@ -127,20 +127,12 @@ const Navbar = () => {
               </li>
             )}
             
-            {user?.profile?.role === 'teacher' && (
-              <li className="nav-item">
-                <Link 
-                  to="/teacher" 
-                  className={`nav-link ${isActive('/teacher')}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Teacher
-                </Link>
-              </li>
-            )}
-            
             <li className="nav-item">
-              <Link to="/groups" className={`nav-link ${isActive('/groups')}`}>
+              <Link 
+                to="/groups" 
+                className={`nav-link ${isActive('/groups')}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 Groups
               </Link>
             </li>

@@ -60,15 +60,6 @@ const Home = () => {
               <button className="btn btn-primary">Go to Dashboard</button>
             </div>
           )}
-          
-          {user.profile?.role === 'teacher' && (
-            <div className="feature-card" onClick={() => navigate('/teacher')}>
-              <div className="card-icon">👨‍🏫</div>
-              <h3>Teacher Dashboard</h3>
-              <p>Manage student progress and create educational materials</p>
-              <button className="btn btn-primary">Go to Dashboard</button>
-            </div>
-          )}
         </div>
       </section>
     </div>

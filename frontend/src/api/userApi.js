@@ -38,4 +38,23 @@ export const deleteUserProfile = async (profileId) => {
   } catch (error) {
     throw error;
   }
+};
+
+export const getStudentDetails = async (username) => {
+  const response = await axiosInstance.get(`profiles/by-username/${username}/`);
+  return {
+    ...response.data.user,
+    ...response.data,
+    gender: response.data.gender || 'Not specified',
+  };
+};
+
+// Get quiz attempts for a specific student
+export const getStudentQuizAttempts = async (username) => {
+  try {
+    const response = await axiosInstance.get(`quiz-attempts/by-username/${username}/`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }; 
