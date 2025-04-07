@@ -189,7 +189,7 @@ const QuizHistory = () => {
   const filteredHistory = filterQuizHistory();
 
   return (
-    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 }, mt: 4 }}>
+    <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 }, mt: 4 }}>
       <Box sx={{ backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h4" sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>

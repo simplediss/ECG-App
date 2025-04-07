@@ -7,7 +7,6 @@ const Register = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1); // Track current page
   const [formData, setFormData] = useState({
-    username: '',
     password: '',
     confirmPassword: '',
     email: '',
@@ -30,11 +29,6 @@ const Register = () => {
 
   const validatePage1 = () => {
     const newErrors = {};
-    
-    // Validate username
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
     
     // Validate email
     if (!formData.email.trim()) {
@@ -187,7 +181,7 @@ const Register = () => {
           setErrors(fieldErrors);
           
           // If we have errors for page 1 fields, go back to page 1
-          if (fieldErrors.username || fieldErrors.email || fieldErrors.password || fieldErrors.confirmPassword) {
+          if (fieldErrors.email || fieldErrors.password || fieldErrors.confirmPassword) {
             setPage(1);
           }
         } else if (typeof serverErrors === 'string') {
@@ -288,23 +282,6 @@ const Register = () => {
         
         {page === 1 ? (
           <form onSubmit={handleNextPage} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="username" className="form-label">
-                Username <span style={requiredStyle}>*</span>
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                className={`form-control ${errors.username ? 'is-invalid' : ''}`}
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Choose a username"
-                required
-              />
-              {errors.username && <div className="invalid-feedback">{errors.username}</div>}
-            </div>
-
             <div className="form-group">
               <label htmlFor="email" className="form-label">
                 Email <span style={requiredStyle}>*</span>

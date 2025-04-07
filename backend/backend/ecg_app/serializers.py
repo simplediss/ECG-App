@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
 from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, Group, GroupMembership
@@ -125,14 +126,6 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegistrationSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        min_length=3,
-        max_length=150,
-        error_messages={
-            'min_length': 'Username must be at least 3 characters long.',
-            'max_length': 'Username cannot exceed 150 characters.',
-        }
-    )
     password = serializers.CharField(
         write_only=True,
         validators=[validate_password],
@@ -188,12 +181,6 @@ class RegistrationSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        # Check if username already exists
-        if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError({
-                'username': 'This username is already taken.'
-            })
-        
         # Check if email already exists
         if User.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError({
@@ -204,9 +191,29 @@ class RegistrationSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         try:
+            # Generate username from email
+            email = validated_data['email']
+            base_username = email.split('@')[0]  # Get part before @
+            username = base_username
+
+            # Remove any characters that are not allowed in usernames
+            username = re.sub(r'[^a-zA-Z0-9_]', '', username)
+            
+            # Ensure username starts with a letter or number
+            if not username:
+                username = 'user'
+            elif not username[0].isalnum():
+                username = 'u' + username
+            
+            # Ensure username is unique by appending numbers if needed
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
             # Create User object
             user = User.objects.create_user(
-                username=validated_data['username'],
+                username=username,
                 password=validated_data['password'],
                 email=validated_data['email'],
                 first_name=validated_data.get('first_name', ''),
