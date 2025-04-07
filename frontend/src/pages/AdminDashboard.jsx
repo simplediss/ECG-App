@@ -160,7 +160,7 @@ const AdminDashboard = () => {
                                     <p>Username: {student.user.username}</p>
                                     <p>Email: {student.user.email}</p>
                                     <p>Quiz Attempts: {getStudentAttempts(student.user.id).length}</p>
-                                    <p>Average Score: {getAverageScore(student.user.id).toFixed(1)}%</p>
+                                    <p>Average Score: {getAverageScore(student.user.id).toFixed(1)}</p>
                                     <p>Last Active: {getLastActiveDate(getStudentAttempts(student.user.id))?.toLocaleDateString() || 'Never'}</p>
                                 </div>
                             ) : null

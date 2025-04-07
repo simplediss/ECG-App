@@ -75,16 +75,9 @@ const QuizHistory = () => {
 
   const formatScore = (score) => {
     if (typeof score !== 'number' || isNaN(score)) {
-      return '0%';
+      return '0';
     }
-    return `${Math.round(score)}%`;
-  };
-
-  const calculateAccuracy = (correct, total) => {
-    if (!correct || !total || total === 0) {
-      return '0%';
-    }
-    return `${((correct / total) * 100).toFixed(1)}%`;
+    return `${Math.round(score)}`;
   };
 
   const getScoreColor = (score) => {
@@ -326,7 +319,8 @@ const QuizHistory = () => {
                       <TableCell sx={{ 
                         color: darkMode ? 'var(--text-primary)' : undefined, 
                         fontWeight: '600',
-                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                        textAlign: 'center'
                       }}>
                         Student
                       </TableCell>
@@ -334,35 +328,40 @@ const QuizHistory = () => {
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Date
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Score
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Correct
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Total
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Actions
                     </TableCell>
@@ -380,7 +379,7 @@ const QuizHistory = () => {
                       }}
                     >
                       {isTeacherOrAdmin && (
-                        <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                        <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                               {attempt.user?.username || 'Unknown Student'}
@@ -391,10 +390,10 @@ const QuizHistory = () => {
                           </Box>
                         </TableCell>
                       )}
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                         {attempt.completed_at ? formatDate(attempt.completed_at) : 'In Progress'}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
                         <Chip
                           label={formatScore(attempt.score)}
                           color={getScoreColor(attempt.score)}
@@ -402,17 +401,18 @@ const QuizHistory = () => {
                           sx={{
                             backgroundColor: getScoreBackgroundColor(attempt.score),
                             color: getScoreTextColor(attempt.score),
-                            fontWeight: 'bold'
+                            fontWeight: 'bold',
+                            textAlign: 'center'
                           }}
                         />
                       </TableCell>
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                         {attempt.correct_answers || 0}
                       </TableCell>
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                         {attempt.total_questions || 0}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
                         <Button
                           variant="outlined"
                           size="small"

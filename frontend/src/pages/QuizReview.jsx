@@ -83,7 +83,7 @@ const QuizReview = () => {
         <div className="summary-card">
           <h3>Score</h3>
           <p className={`score ${quizAttempt.score >= 70 ? 'good' : quizAttempt.score >= 50 ? 'average' : 'poor'}`}>
-            {Math.round(quizAttempt.score)}%
+            {Math.round(quizAttempt.score)}
           </p>
         </div>
       </div>

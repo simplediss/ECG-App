@@ -476,7 +476,7 @@ const StudentOverview = () => {
                                   fontWeight: 600
                                 }}
                               >
-                                {attempt.score.toFixed(1)}%
+                                {attempt.score.toFixed(1)}
                               </Typography>
                             ) : 'N/A'}
                           </TableCell>
