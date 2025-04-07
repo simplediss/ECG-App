@@ -271,7 +271,6 @@ const Groups = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
             <TableRow>
-              <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Username</TableCell>
               <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Full Name</TableCell>
               <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Email</TableCell>
               <TableCell align="right" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Actions</TableCell>
@@ -283,7 +282,6 @@ const Groups = () => {
                 '&:hover': { backgroundColor: darkMode ? 'var(--bg-white)' : undefined },
                 borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
               }}>
-                <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>{member.username}</TableCell>
                 <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>
                   {member.first_name} {member.last_name}
                 </TableCell>
@@ -348,7 +346,6 @@ const Groups = () => {
         <Table size="small">
           <TableHead sx={{ backgroundColor: darkMode ? 'var(--bg-main)' : undefined }}>
             <TableRow>
-              <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Username</TableCell>
               <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Full Name</TableCell>
               <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Email</TableCell>
               <TableCell align="right" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: '600', borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>Actions</TableCell>
@@ -360,7 +357,6 @@ const Groups = () => {
                 '&:hover': { backgroundColor: darkMode ? 'var(--bg-white)' : undefined },
                 borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
               }}>
-                <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>{request.student_name}</TableCell>
                 <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, borderBottom: darkMode ? '1px solid var(--border-color)' : undefined }}>
                   {request.student_first_name} {request.student_last_name}
                 </TableCell>

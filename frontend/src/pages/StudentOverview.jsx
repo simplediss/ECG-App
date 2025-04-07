@@ -177,18 +177,26 @@ const StudentOverview = () => {
               <Divider sx={{ mb: 2, backgroundColor: darkMode ? 'rgba(255,255,255,0.12)' : undefined }} />
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
-                  Username
-                </Typography>
-                <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
-                  <strong>{student.username}</strong>
-                </Typography>
-              </Box>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
                   Full Name
                 </Typography>
                 <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
                   <strong>{student.first_name} {student.last_name}</strong>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
+                  Gender
+                </Typography>
+                <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  <strong>{student.gender || 'Not specified'}</strong>
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color={darkMode ? 'rgba(255, 255, 255, 0.7)' : 'text.secondary'}>
+                  Date of Birth
+                </Typography>
+                <Typography variant="body1" sx={{ color: darkMode ? '#ffffff' : undefined }}>
+                  <strong>{student.date_of_birth ? new Date(student.date_of_birth).toLocaleDateString() : 'Not specified'}</strong>
                 </Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
