@@ -37,6 +37,8 @@ import {
   PendingOutlined as PendingIcon,
   Refresh as RefreshIcon,
   Visibility as VisibilityIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import * as groupApi from '../api/groupApi';
 
@@ -56,6 +58,7 @@ const Groups = () => {
   const [pendingRequests, setPendingRequests] = useState({});
   const [myPendingRequests, setMyPendingRequests] = useState([]);
   const [groupMembers, setGroupMembers] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState({});
 
   const loadGroups = async () => {
     try {
@@ -227,6 +230,13 @@ const Groups = () => {
       setError('Failed to refresh groups');
       console.error('Error refreshing groups:', err);
     }
+  };
+
+  const handleExpandClick = (groupId) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
   };
 
   const renderGroupMembersTable = (groupId) => {
@@ -435,14 +445,27 @@ const Groups = () => {
               }}
             >
               <CardContent>
-                <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
+                  <IconButton
+                    onClick={() => handleExpandClick(group.id)}
+                    sx={{ 
+                      color: darkMode ? 'var(--text-primary)' : undefined,
+                      '&:hover': {
+                        backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : undefined,
+                      }
+                    }}
+                  >
+                    {expandedGroups[group.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </IconButton>
+                </Box>
                 <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary', mt: 1 }}>
                   Created by: {group.teacher_name}
                 </Typography>
                 <Typography variant="body2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
                   Members: {group.member_count}
                 </Typography>
-                {user.profile?.role === 'teacher' && group.teacher === user.id && (
+                {expandedGroups[group.id] && user.profile?.role === 'teacher' && group.teacher === user.id && (
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" sx={{ mb: 1, color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>
                       Group Members
