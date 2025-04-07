@@ -1,4 +1,3 @@
-
 from django.db.models import Q
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
@@ -215,10 +214,14 @@ class GroupViewSet(viewsets.ModelViewSet):
         if user.is_staff:
             groups = Group.objects.all()
         else:
-            groups = Group.objects.filter(
-                Q(teacher=user) |  # Groups owned by the user
-                Q(memberships__student=user, memberships__status='approved')  # Groups where user is a member
-            ).distinct()
+            # For teachers, only return groups they own
+            groups = Group.objects.filter(teacher=user)
+        
+        # Optimize the query by prefetching related data
+        groups = groups.prefetch_related(
+            'memberships',
+            'memberships__student'
+        ).select_related('teacher')
         
         serializer = self.get_serializer(groups, many=True)
         return Response(serializer.data)

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { fetchQuizHistory } from '../api/quizApi';
+import { fetchMyGroups } from '../api/groupApi';
 import {
   Box,
   Typography,
@@ -39,10 +40,24 @@ const QuizHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
   const [scoreFilter, setScoreFilter] = useState('all');
+  const [groupFilter, setGroupFilter] = useState('all');
+  const [groups, setGroups] = useState([]);
 
   useEffect(() => {
     loadQuizHistory();
+    if (isTeacherOrAdmin) {
+      loadGroups();
+    }
   }, []);
+
+  const loadGroups = async () => {
+    try {
+      const data = await fetchMyGroups();
+      setGroups(data);
+    } catch (err) {
+      console.error('Failed to load groups:', err);
+    }
+  };
 
   const loadQuizHistory = async () => {
     try {
@@ -126,7 +141,11 @@ const QuizHistory = () => {
         (scoreFilter === 'medium' && attempt.score >= 60 && attempt.score < 80) ||
         (scoreFilter === 'low' && attempt.score < 60);
 
-      return matchesSearch && matchesDate && matchesScore;
+      // Group filter
+      const matchesGroup = groupFilter === 'all' || 
+        attempt.groups?.some(group => group.id === parseInt(groupFilter));
+
+      return matchesSearch && matchesDate && matchesScore && matchesGroup;
     });
   };
 
@@ -228,32 +247,59 @@ const QuizHistory = () => {
               flexWrap: 'wrap'
             }}>
               {isTeacherOrAdmin && (
-                <TextField
-                  label="Search"
-                  variant="outlined"
-                  size="small"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{
-                    minWidth: 200,
-                    '& .MuiInputLabel-root': {
-                      color: darkMode ? 'var(--text-secondary)' : undefined
-                    },
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: darkMode ? 'var(--border-color)' : undefined
+                <>
+                  <TextField
+                    label="Search"
+                    variant="outlined"
+                    size="small"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{
+                      minWidth: 200,
+                      '& .MuiInputLabel-root': {
+                        color: darkMode ? 'var(--text-secondary)' : undefined
                       },
-                      '&:hover fieldset': {
-                        borderColor: darkMode ? 'var(--primary)' : undefined
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: darkMode ? 'var(--primary)' : undefined
-                      },
-                      color: darkMode ? 'var(--text-primary)' : undefined,
-                      backgroundColor: darkMode ? 'var(--bg-white)' : undefined
-                    }
-                  }}
-                />
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: darkMode ? 'var(--border-color)' : undefined
+                        },
+                        '&:hover fieldset': {
+                          borderColor: darkMode ? 'var(--primary)' : undefined
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: darkMode ? 'var(--primary)' : undefined
+                        },
+                        color: darkMode ? 'var(--text-primary)' : undefined,
+                        backgroundColor: darkMode ? 'var(--bg-white)' : undefined
+                      }
+                    }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Group</InputLabel>
+                    <Select
+                      value={groupFilter}
+                      label="Group"
+                      onChange={(e) => setGroupFilter(e.target.value)}
+                      sx={{
+                        color: darkMode ? 'var(--text-primary)' : undefined,
+                        backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'var(--border-color)' : undefined
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'var(--primary)' : undefined
+                        }
+                      }}
+                    >
+                      <MenuItem value="all">All Groups</MenuItem>
+                      {groups.map(group => (
+                        <MenuItem key={group.id} value={group.id}>
+                          {group.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
               )}
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Date</InputLabel>

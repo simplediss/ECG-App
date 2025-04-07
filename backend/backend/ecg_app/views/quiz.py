@@ -74,8 +74,14 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher'):
+        if user.is_staff:
             return QuizAttempt.objects.all()
+        elif hasattr(user, 'profile') and user.profile.role == 'teacher':
+            # For teachers, get attempts from their group members
+            return QuizAttempt.objects.filter(
+                user__group_memberships__group__teacher=user,
+                user__group_memberships__status='approved'
+            ).distinct()
         return QuizAttempt.objects.filter(user=user)
 
     @action(detail=False, methods=['get'], url_path='by-username/(?P<username>[^/.]+)')
