@@ -58,6 +58,26 @@ const Quiz = () => {
     }
   }, [selectedQuiz, currentQuestionIndex]);
 
+  // Add useEffect to handle scrolling when question changes
+  useEffect(() => {
+    if (selectedQuiz && currentQuestionIndex > 0) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, [currentQuestionIndex, selectedQuiz]);
+
+  // Add useEffect to handle scrolling when showing quiz summary
+  useEffect(() => {
+    if (quizSubmitted) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, [quizSubmitted]);
+
   const loadQuizzes = async () => {
     try {
       setIsLoading(true);
