@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { fetchQuizHistory } from '../api/quizApi';
+import { fetchMyGroups } from '../api/groupApi';
 import {
   Box,
   Typography,
@@ -39,10 +40,24 @@ const QuizHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
   const [scoreFilter, setScoreFilter] = useState('all');
+  const [groupFilter, setGroupFilter] = useState('all');
+  const [groups, setGroups] = useState([]);
 
   useEffect(() => {
     loadQuizHistory();
+    if (isTeacherOrAdmin) {
+      loadGroups();
+    }
   }, []);
+
+  const loadGroups = async () => {
+    try {
+      const data = await fetchMyGroups();
+      setGroups(data);
+    } catch (err) {
+      console.error('Failed to load groups:', err);
+    }
+  };
 
   const loadQuizHistory = async () => {
     try {
@@ -63,27 +78,21 @@ const QuizHistory = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      month: 'short',
-      day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    });
+      minute: '2-digit',
+      hour12: false
+    }).replace(/\//g, '/');
   };
 
   const formatScore = (score) => {
     if (typeof score !== 'number' || isNaN(score)) {
-      return '0%';
+      return '0';
     }
-    return `${Math.round(score)}%`;
-  };
-
-  const calculateAccuracy = (correct, total) => {
-    if (!correct || !total || total === 0) {
-      return '0%';
-    }
-    return `${((correct / total) * 100).toFixed(1)}%`;
+    return `${Math.round(score)}`;
   };
 
   const getScoreColor = (score) => {
@@ -132,7 +141,11 @@ const QuizHistory = () => {
         (scoreFilter === 'medium' && attempt.score >= 60 && attempt.score < 80) ||
         (scoreFilter === 'low' && attempt.score < 60);
 
-      return matchesSearch && matchesDate && matchesScore;
+      // Group filter
+      const matchesGroup = groupFilter === 'all' || 
+        attempt.groups?.some(group => group.id === parseInt(groupFilter));
+
+      return matchesSearch && matchesDate && matchesScore && matchesGroup;
     });
   };
 
@@ -234,32 +247,59 @@ const QuizHistory = () => {
               flexWrap: 'wrap'
             }}>
               {isTeacherOrAdmin && (
-                <TextField
-                  label="Search"
-                  variant="outlined"
-                  size="small"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{
-                    minWidth: 200,
-                    '& .MuiInputLabel-root': {
-                      color: darkMode ? 'var(--text-secondary)' : undefined
-                    },
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: darkMode ? 'var(--border-color)' : undefined
+                <>
+                  <TextField
+                    label="Search"
+                    variant="outlined"
+                    size="small"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{
+                      minWidth: 200,
+                      '& .MuiInputLabel-root': {
+                        color: darkMode ? 'var(--text-secondary)' : undefined
                       },
-                      '&:hover fieldset': {
-                        borderColor: darkMode ? 'var(--primary)' : undefined
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: darkMode ? 'var(--primary)' : undefined
-                      },
-                      color: darkMode ? 'var(--text-primary)' : undefined,
-                      backgroundColor: darkMode ? 'var(--bg-white)' : undefined
-                    }
-                  }}
-                />
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: darkMode ? 'var(--border-color)' : undefined
+                        },
+                        '&:hover fieldset': {
+                          borderColor: darkMode ? 'var(--primary)' : undefined
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: darkMode ? 'var(--primary)' : undefined
+                        },
+                        color: darkMode ? 'var(--text-primary)' : undefined,
+                        backgroundColor: darkMode ? 'var(--bg-white)' : undefined
+                      }
+                    }}
+                  />
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Group</InputLabel>
+                    <Select
+                      value={groupFilter}
+                      label="Group"
+                      onChange={(e) => setGroupFilter(e.target.value)}
+                      sx={{
+                        color: darkMode ? 'var(--text-primary)' : undefined,
+                        backgroundColor: darkMode ? 'var(--bg-white)' : undefined,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'var(--border-color)' : undefined
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? 'var(--primary)' : undefined
+                        }
+                      }}
+                    >
+                      <MenuItem value="all">All Groups</MenuItem>
+                      {groups.map(group => (
+                        <MenuItem key={group.id} value={group.id}>
+                          {group.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
               )}
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }}>Date</InputLabel>
@@ -325,7 +365,8 @@ const QuizHistory = () => {
                       <TableCell sx={{ 
                         color: darkMode ? 'var(--text-primary)' : undefined, 
                         fontWeight: '600',
-                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                        borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                        textAlign: 'center'
                       }}>
                         Student
                       </TableCell>
@@ -333,35 +374,40 @@ const QuizHistory = () => {
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Date
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Score
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Correct
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Total
                     </TableCell>
                     <TableCell sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined, 
                       fontWeight: '600',
-                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined
+                      borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
+                      textAlign: 'center'
                     }}>
                       Actions
                     </TableCell>
@@ -379,7 +425,7 @@ const QuizHistory = () => {
                       }}
                     >
                       {isTeacherOrAdmin && (
-                        <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                        <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                               {attempt.user?.username || 'Unknown Student'}
@@ -390,10 +436,10 @@ const QuizHistory = () => {
                           </Box>
                         </TableCell>
                       )}
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                         {attempt.completed_at ? formatDate(attempt.completed_at) : 'In Progress'}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
                         <Chip
                           label={formatScore(attempt.score)}
                           color={getScoreColor(attempt.score)}
@@ -401,17 +447,18 @@ const QuizHistory = () => {
                           sx={{
                             backgroundColor: getScoreBackgroundColor(attempt.score),
                             color: getScoreTextColor(attempt.score),
-                            fontWeight: 'bold'
+                            fontWeight: 'bold',
+                            textAlign: 'center'
                           }}
                         />
                       </TableCell>
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                         {attempt.correct_answers || 0}
                       </TableCell>
-                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
+                      <TableCell sx={{ color: darkMode ? 'var(--text-primary)' : undefined, textAlign: 'center' }}>
                         {attempt.total_questions || 0}
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ textAlign: 'center' }}>
                         <Button
                           variant="outlined"
                           size="small"

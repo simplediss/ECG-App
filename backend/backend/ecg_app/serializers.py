@@ -89,10 +89,11 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
     score = serializers.SerializerMethodField()
     correct_answers = serializers.SerializerMethodField()
     total_questions = serializers.SerializerMethodField()
+    groups = serializers.SerializerMethodField()
 
     class Meta:
         model = QuizAttempt
-        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions', 'question_attempts']
+        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions', 'question_attempts', 'groups']
 
     def get_score(self, obj):
         question_attempts = obj.question_attempts.all()
@@ -107,6 +108,15 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
 
     def get_total_questions(self, obj):
         return obj.question_attempts.count()
+
+    def get_groups(self, obj):
+        # Get all approved group memberships for the user
+        memberships = obj.user.group_memberships.filter(status='approved').select_related('group')
+        return [{
+            'id': membership.group.id,
+            'name': membership.group.name,
+            'teacher_id': membership.group.teacher_id
+        } for membership in memberships]
 
 
 class LoginSerializer(serializers.Serializer):
@@ -224,14 +234,25 @@ class RegistrationSerializer(serializers.Serializer):
 class GroupSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source='teacher.username', read_only=True)
     member_count = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = Group
-        fields = ['id', 'name', 'description', 'teacher', 'teacher_name', 'created_at', 'member_count']
+        fields = ['id', 'name', 'description', 'teacher', 'teacher_name', 'created_at', 'member_count', 'members']
         read_only_fields = ['teacher', 'created_at']
 
     def get_member_count(self, obj):
         return obj.memberships.filter(status='approved').count()
+
+    def get_members(self, obj):
+        members = obj.memberships.filter(status='approved').select_related('student')
+        return [{
+            'id': membership.student.id,
+            'username': membership.student.username,
+            'first_name': membership.student.first_name,
+            'last_name': membership.student.last_name,
+            'email': membership.student.email
+        } for membership in members]
 
 
 class GroupDetailSerializer(GroupSerializer):

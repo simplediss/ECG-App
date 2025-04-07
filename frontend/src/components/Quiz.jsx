@@ -58,6 +58,26 @@ const Quiz = () => {
     }
   }, [selectedQuiz, currentQuestionIndex]);
 
+  // Add useEffect to handle scrolling when question changes
+  useEffect(() => {
+    if (selectedQuiz && currentQuestionIndex > 0) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, [currentQuestionIndex, selectedQuiz]);
+
+  // Add useEffect to handle scrolling when showing quiz summary
+  useEffect(() => {
+    if (quizSubmitted) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, [quizSubmitted]);
+
   const loadQuizzes = async () => {
     try {
       setIsLoading(true);
@@ -282,7 +302,7 @@ const Quiz = () => {
             <div className="stat-card">
               <h3>Overall Score</h3>
               <div className="score-circle" style={scoreStyle}>
-                <span className="score-value">{scorePercentage}%</span>
+                <span className="score-value">{scorePercentage}</span>
               </div>
             </div>
             <div className="stat-card">
@@ -291,7 +311,6 @@ const Quiz = () => {
                 <p>Correct Answers: {quizResult?.correct_answers || 0}</p>
                 <p>Total Questions: {quizResult?.total_questions || 0}</p>
                 <p>Time Taken: {formatDuration(duration)}</p>
-                <p>Accuracy: {quizResult ? ((quizResult.correct_answers / quizResult.total_questions) * 100).toFixed(1) : 0}%</p>
               </div>
             </div>
           </div>

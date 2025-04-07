@@ -81,7 +81,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/quiz/:id"
+          path="/quiz"
           element={
             <PrivateRoute>
               <Quiz />
@@ -97,7 +97,7 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/quiz-review/:id"
+          path="/quiz-review/:attemptId"
           element={
             <PrivateRoute>
               <QuizReview />
@@ -117,6 +117,14 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <div>Settings Page (Coming Soon)</div>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <div>Profile Page (Coming Soon)</div>
             </PrivateRoute>
           }
         />
