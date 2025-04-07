@@ -423,7 +423,13 @@ const Groups = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setOpenCreateDialog(true)}
-            sx={{ mb: 3 }}
+            sx={{ 
+              mb: 3,
+              backgroundColor: darkMode ? 'var(--primary)' : undefined,
+              '&:hover': {
+                backgroundColor: darkMode ? 'var(--primary-dark)' : undefined,
+              }
+            }}
           >
             Create New Group
           </Button>
@@ -442,13 +448,21 @@ const Groups = () => {
                 color: darkMode ? 'var(--text-primary)' : undefined,
                 border: darkMode ? '1px solid var(--border-color)' : undefined,
                 boxShadow: darkMode ? 'var(--box-shadow)' : undefined,
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                }
               }}
+              onClick={() => handleExpandClick(group.id)}
             >
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="h6" sx={{ color: darkMode ? 'var(--text-primary)' : undefined, fontWeight: 'bold' }}>{group.name}</Typography>
                   <IconButton
-                    onClick={() => handleExpandClick(group.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExpandClick(group.id);
+                    }}
                     sx={{ 
                       color: darkMode ? 'var(--text-primary)' : undefined,
                       '&:hover': {
