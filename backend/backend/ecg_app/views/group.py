@@ -213,9 +213,15 @@ class GroupViewSet(viewsets.ModelViewSet):
         user = request.user
         if user.is_staff:
             groups = Group.objects.all()
-        else:
-            # For teachers, only return groups they own
+        elif hasattr(user, 'profile') and user.profile.role == 'teacher':
+            # For teachers, return groups they own
             groups = Group.objects.filter(teacher=user)
+        else:
+            # For students, return groups they are approved members of
+            groups = Group.objects.filter(
+                memberships__student=user,
+                memberships__status='approved'
+            )
         
         # Optimize the query by prefetching related data
         groups = groups.prefetch_related(
