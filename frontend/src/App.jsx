@@ -13,6 +13,7 @@ import QuizReview from './pages/QuizReview';
 import Groups from './pages/Groups';
 import Navbar from './components/Navbar';
 import StudentOverview from './pages/StudentOverview';
+import StudentQuizHistory from './pages/StudentQuizHistory';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -133,6 +134,14 @@ const AppContent = () => {
           element={
             <TeacherOrAdminRoute>
               <StudentOverview />
+            </TeacherOrAdminRoute>
+          }
+        />
+        <Route
+          path="/student/:username/quizzes"
+          element={
+            <TeacherOrAdminRoute>
+              <StudentQuizHistory />
             </TeacherOrAdminRoute>
           }
         />
