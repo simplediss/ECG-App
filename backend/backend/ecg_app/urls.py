@@ -9,6 +9,7 @@ from .views.image import *
 from .views.profile import *
 from .views.quiz import *
 from .views.templates import *
+from .views.statistics import UserStatisticsView
 
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -34,7 +35,9 @@ urlpatterns = [
     # User Management API endpoints
     path('api/user-profile/<int:profile_id>/', update_user_profile, name='update_user_profile'),
     path('api/profiles/by-username/<str:username>/', ProfileByUsernameView.as_view(), name='profile-by-username'),
-    # GeneralAPI endpoints
+    # Statistics API endpoint
+    path('api/statistics/user/<int:user_id>/', UserStatisticsView.as_view(), name='user-statistics'),
+    # General API endpoints
     path('api/check-answer/', CheckAnswerView.as_view(), name='check-answer'),
     # Image serving endpoint - handle both with and without .png extension
     path('api/images/<path:image_path>.png', serve_ecg_image, name='serve_ecg_image'),
