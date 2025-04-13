@@ -172,11 +172,14 @@ const Groups = () => {
   const handleJoinRequest = async (groupId) => {
     try {
       await groupApi.sendJoinRequest(groupId);
-      loadGroups();
+      await loadMyGroups(); // Reload my groups after sending request
+      await loadMyPendingRequests(); // Reload pending requests
       setSuccess('Join request sent successfully');
+      setError(null); // Clear any previous errors
     } catch (err) {
-      setError('Failed to send join request');
       console.error('Error sending join request:', err);
+      setError(err.response?.data?.error || 'Failed to send join request. Please try again.');
+      setSuccess(null); // Clear any previous success messages
     }
   };
 
@@ -225,7 +228,7 @@ const Groups = () => {
       await loadMyGroups();
       await loadPendingRequests();
       await loadMyPendingRequests();
-      setSuccess('Groups refreshed successfully');
+      setSuccess(null);
     } catch (err) {
       setError('Failed to refresh groups');
       console.error('Error refreshing groups:', err);
