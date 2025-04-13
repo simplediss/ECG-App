@@ -17,20 +17,39 @@ class UserStatisticsView(APIView):
             days_limit = int(days_limit)
             return timezone.now() - timedelta(days=days_limit)
         except ValueError:
-            raise ValueError("days_limit must be a valid integer")
+            raise ValueError(f"days_limit must be a valid integer, got: {days_limit}")
 
     @staticmethod
-    def _get_quiz_attempts(user, start_date):
+    def _get_quiz_limit(quiz_limit):
+        if quiz_limit is None:
+            return None
+            
+        try:
+            quiz_limit = int(quiz_limit)
+            if quiz_limit <= 0:
+                raise ValueError(f"quiz_limit must be a positive integer, got: {quiz_limit}")
+            return quiz_limit
+        except ValueError:
+            raise ValueError(f"quiz_limit must be a valid positive integer, got: {quiz_limit}")
+
+    @staticmethod
+    def _get_quiz_attempts(user, start_date, quiz_limit):
         quiz_attempts = QuizAttempt.objects.filter(user=user)
         if start_date:
             quiz_attempts = quiz_attempts.filter(started_at__gte=start_date)
+        if quiz_limit:
+            quiz_attempts = quiz_attempts.order_by('-started_at')[:quiz_limit]
         return quiz_attempts
 
     @staticmethod
-    def _get_question_attempts(user, start_date):
+    def _get_question_attempts(user, start_date, quiz_limit):
         question_attempts = QuestionAttempt.objects.filter(quiz_attempt__user=user)
         if start_date:
             question_attempts = question_attempts.filter(quiz_attempt__started_at__gte=start_date)
+        if quiz_limit:
+            # Get the most recent quiz attempts and filter question attempts accordingly
+            recent_quiz_attempts = QuizAttempt.objects.filter(user=user).order_by('-started_at')[:quiz_limit]
+            question_attempts = question_attempts.filter(quiz_attempt__in=recent_quiz_attempts)
         return question_attempts
 
     @staticmethod
@@ -84,16 +103,18 @@ class UserStatisticsView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Get the days limit from query parameters and calculate the start date
+        # Get the days limit and quiz limit from query parameters
         try:
             days_limit = request.query_params.get('days_limit')
+            quiz_limit = request.query_params.get('quiz_limit')
             start_date = self._get_start_date(days_limit)
+            quiz_limit = self._get_quiz_limit(quiz_limit)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get the quiz attempts and question attempts
-        quiz_attempts = self._get_quiz_attempts(user, start_date)
-        question_attempts = self._get_question_attempts(user, start_date)
+        quiz_attempts = self._get_quiz_attempts(user, start_date, quiz_limit)
+        question_attempts = self._get_question_attempts(user, start_date, quiz_limit)
 
         # Calculate statistics using dedicated methods
         total_exams = self._total_exams(quiz_attempts)
@@ -108,5 +129,6 @@ class UserStatisticsView(APIView):
             'correct_answers': correct_answers,
             'overall_accuracy': overall_accuracy,
             'doc_class_statistics': doc_class_stats,
-            'days_limit': days_limit
+            'days_limit': days_limit,
+            'quiz_limit': quiz_limit
         })
