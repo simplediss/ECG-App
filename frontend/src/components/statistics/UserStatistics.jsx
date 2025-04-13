@@ -308,7 +308,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                                                             <TableCell align="right" sx={{ 
                                                                 color: darkMode ? 'var(--text-primary)' : undefined,
                                                                 borderBottom: darkMode ? '1px solid var(--border-color)' : undefined,
-                                                            }}>{stat.accuracy.toFixed(2)}%</TableCell>
+                                                            }}>{stat.total_attempts === 0 ? 'Unknown' : `${stat.accuracy.toFixed(2)}%`}</TableCell>
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
