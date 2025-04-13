@@ -30,6 +30,7 @@ import {
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import * as userApi from '../api/userApi';
+import UserStatistics from '../components/statistics/UserStatistics';
 
 const StudentOverview = () => {
   const { username } = useParams();
@@ -546,6 +547,13 @@ const StudentOverview = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Box sx={{ mt: 4 }}>
+        <UserStatistics 
+          userId={student.user.id} 
+          title={`${student.first_name} ${student.last_name}'s Statistics`} 
+        />
+      </Box>
     </Container>
   );
 };
