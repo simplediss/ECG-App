@@ -45,4 +45,40 @@ export const logout = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+// Request password reset
+export const requestPasswordReset = async (email) => {
+  try {
+    await getCsrfToken();
+    
+    const response = await axiosInstance.post(`/auth/password-reset/`, {
+      email
+    }, {
+      withCredentials: true
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Confirm password reset
+export const confirmPasswordReset = async (uid, token, newPassword) => {
+  try {
+    await getCsrfToken();
+    
+    const response = await axiosInstance.post(`/auth/password-reset/confirm/`, {
+      uid,
+      token,
+      password: newPassword
+    }, {
+      withCredentials: true
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 }; 

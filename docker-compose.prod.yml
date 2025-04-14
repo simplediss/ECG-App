@@ -17,6 +17,8 @@ services:
       dockerfile: Dockerfile.prod
     depends_on:
       - database
+    env_file:
+      - .env
     environment:
       - DEBUG=False
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
@@ -29,6 +31,13 @@ services:
       - DATASET_DOC_SAMPLES_PATH=${DATASET_DOC_SAMPLES_PATH}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - FRONTEND_URL=${FRONTEND_URL}
     ports:
       - "8000:8000"
     volumes:
