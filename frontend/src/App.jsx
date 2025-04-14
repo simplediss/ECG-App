@@ -14,6 +14,8 @@ import Groups from './pages/Groups';
 import Navbar from './components/Navbar';
 import StudentOverview from './pages/StudentOverview';
 import StudentQuizHistory from './pages/StudentQuizHistory';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -145,6 +147,8 @@ const AppContent = () => {
             </TeacherOrAdminRoute>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<Navigate to="/home" />} />
       </Routes>
     </div>
