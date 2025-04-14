@@ -312,3 +312,32 @@ class GroupMembershipRequestSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['status']
 
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        error_messages={
+            'required': 'Email is required.',
+            'invalid': 'Please enter a valid email address.',
+        }
+    )
+
+    def validate(self, data):
+        email = data.get('email')
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({
+                'email': 'No user found with this email address.'
+            })
+        return data
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        write_only=True,
+        validators=[validate_password],
+        error_messages={
+            'required': 'Password is required.',
+            'min_length': 'Password must be at least 8 characters long.',
+        }
+    )
+    token = serializers.CharField(write_only=True)
+

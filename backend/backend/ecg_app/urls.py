@@ -3,12 +3,12 @@ import os
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views.auth import *
-from .views.group import *
-from .views.image import *
-from .views.profile import *
-from .views.quiz import *
-from .views.templates import *
+from .views.auth import api_csrf, api_login, api_logout, api_user_status, api_register, api_password_reset_request, api_password_reset_confirm
+from .views.group import GroupViewSet, GroupMembershipViewSet, GroupMembershipRequestViewSet
+from .views.image import serve_ecg_image
+from .views.profile import ProfileByUsernameView, ProfileViewSet, update_user_profile
+from .views.quiz import CheckAnswerView, QuizAttemptViewSet, QuizViewSet
+from .views.templates import home, view_ecg_samples, view_ecg_samples_snomed, view_ecg_snomed, view_users, view_quizzes, view_quiz_attempts
 from .views.statistics import UserStatisticsView
 
 
@@ -32,6 +32,8 @@ urlpatterns = [
     path('api/auth/logout/', api_logout, name='api_logout'),
     path('api/auth/user-status/', api_user_status, name='api_user_status'),
     path('api/register/', api_register, name='api_register'),
+    path('api/auth/password-reset/', api_password_reset_request, name='api_password_reset_request'),
+    path('api/auth/password-reset/confirm/', api_password_reset_confirm, name='api_password_reset_confirm'),
     # User Management API endpoints
     path('api/user-profile/<int:profile_id>/', update_user_profile, name='update_user_profile'),
     path('api/profiles/by-username/<str:username>/', ProfileByUsernameView.as_view(), name='profile-by-username'),
