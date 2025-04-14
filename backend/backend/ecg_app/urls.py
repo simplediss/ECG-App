@@ -31,7 +31,7 @@ urlpatterns = [
     path('api/auth/login/', api_login, name='api_login'),
     path('api/auth/logout/', api_logout, name='api_logout'),
     path('api/auth/user-status/', api_user_status, name='api_user_status'),
-    path('api/register/', api_register, name='api_register'),
+    path('api/auth/register/', api_register, name='api_register'),
     path('api/auth/password-reset/', api_password_reset_request, name='api_password_reset_request'),
     path('api/auth/password-reset/confirm/', api_password_reset_confirm, name='api_password_reset_confirm'),
     # User Management API endpoints

@@ -117,7 +117,7 @@ const Register = () => {
       userData.append('date_of_birth', formData.date_of_birth);
       userData.append('gender', formData.gender);
 
-      const response = await axiosInstance.post(`/register/`, userData, {
+      const response = await axiosInstance.post(`/auth/register/`, userData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
