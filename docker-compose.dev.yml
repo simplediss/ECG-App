@@ -17,6 +17,8 @@ services:
       dockerfile: Dockerfile.dev
     depends_on:
       - database
+    env_file:
+      - .env
     environment:
       - DEBUG=True
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
@@ -27,6 +29,13 @@ services:
       - DATASET_SNOMED_PATH=/dataset/snomed/relevant.csv  # file with relevant SNOMED codes
       - DATASET_DOC_LABELS_PATH=/dataset/doc/doc_labels.txt  # file with doctor labels
       - DATASET_DOC_SAMPLES_PATH=/dataset/doc/sample_name_to_doc_label_balanced_400.csv  # file with doctor samples labels
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - FRONTEND_URL=${FRONTEND_URL}
     ports:
       - "8000:8000"
     volumes:

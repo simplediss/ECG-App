@@ -132,11 +132,25 @@ def api_password_reset_request(request):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
         # Create reset link
-        reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
+        reset_link = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
         
         # Send email
-        subject = 'Password Reset Request'
-        message = f'Click the following link to reset your password: {reset_link}'
+        subject = 'ECGenius - Password Reset Request'
+        message = f'''
+Hello {user.first_name or user.username},
+
+We received a request to reset your password for your ECGenius account. If you didn't make this request, you can safely ignore this email.
+
+To reset your password, click the link below:
+{reset_link}
+
+This link will expire in 24 hours.
+
+If you're having trouble clicking the link, copy and paste it into your browser.
+
+Best regards,
+The ECGenius Team
+'''
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [email]
         
