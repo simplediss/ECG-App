@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
-import '../styles/UserManagement.css';
+import * as userApi from '../api/userApi';
+import '../styles/pages/UserManagement.css';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -26,7 +26,7 @@ const UserManagement = () => {
     });
 
     useEffect(() => {
-        fetchProfiles();
+        loadProfiles();
     }, []);
     
     // Clear success message after 3 seconds
@@ -39,14 +39,14 @@ const UserManagement = () => {
         }
     }, [success]);
 
-    const fetchProfiles = async () => {
+    const loadProfiles = async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get('profiles/');
-            setProfiles(response.data);
+            const data = await userApi.fetchProfiles();
+            setProfiles(data);
             
             // Extract user data from profiles
-            const userData = response.data.map(profile => profile.user);
+            const userData = data.map(profile => profile.user);
             setUsers(userData);
         } catch (error) {
             console.error('Error fetching users:', error.response?.data || error.message);
@@ -67,10 +67,10 @@ const UserManagement = () => {
                 userData.date_of_birth = null;
             }
             
-            await axiosInstance.post('auth/register/', userData);
+            await userApi.createUser(userData);
             setSuccess('User created successfully!');
             resetForm();
-            fetchProfiles();
+            loadProfiles();
         } catch (error) {
             console.error('Error creating user:', error.response?.data || error.message);
             setError('Failed to create user. Please check the form and try again.');
@@ -113,14 +113,14 @@ const UserManagement = () => {
             }
             
             // Use the custom update endpoint
-            const response = await axiosInstance.put(`user-profile/${editingUser.id}/`, userData);
+            const response = await userApi.updateUserProfile(editingUser.id, userData);
             
             setError(null);
-            setSuccess(`User ${response.data.user.username} updated successfully!`);
+            setSuccess(`User ${response.user.username} updated successfully!`);
             
             setEditingUser(null);
             resetForm();
-            fetchProfiles();
+            loadProfiles();
         } catch (error) {
             console.error('Error updating user:', error.response?.data || error.message);
             setError('Failed to update user. Please try again.');
@@ -136,9 +136,9 @@ const UserManagement = () => {
         
         try {
             setLoading(true);
-            await axiosInstance.delete(`profiles/${userId}/`);
+            await userApi.deleteUserProfile(userId);
             setSuccess('User deleted successfully!');
-            fetchProfiles();
+            loadProfiles();
         } catch (error) {
             console.error('Error deleting user:', error.response?.data || error.message);
             setError('Failed to delete user. Please try again.');

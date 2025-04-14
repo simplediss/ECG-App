@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
 from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, Group, GroupMembership
@@ -89,10 +90,11 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
     score = serializers.SerializerMethodField()
     correct_answers = serializers.SerializerMethodField()
     total_questions = serializers.SerializerMethodField()
+    groups = serializers.SerializerMethodField()
 
     class Meta:
         model = QuizAttempt
-        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions', 'question_attempts']
+        fields = ['id', 'quiz', 'user', 'started_at', 'completed_at', 'score', 'correct_answers', 'total_questions', 'question_attempts', 'groups']
 
     def get_score(self, obj):
         question_attempts = obj.question_attempts.all()
@@ -108,6 +110,15 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
     def get_total_questions(self, obj):
         return obj.question_attempts.count()
 
+    def get_groups(self, obj):
+        # Get all approved group memberships for the user
+        memberships = obj.user.group_memberships.filter(status='approved').select_related('group')
+        return [{
+            'id': membership.group.id,
+            'name': membership.group.name,
+            'teacher_id': membership.group.teacher_id
+        } for membership in memberships]
+
 
 class LoginSerializer(serializers.Serializer):
     login_identifier = serializers.CharField(help_text="Username or Email")
@@ -115,14 +126,6 @@ class LoginSerializer(serializers.Serializer):
 
 
 class RegistrationSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        min_length=3,
-        max_length=150,
-        error_messages={
-            'min_length': 'Username must be at least 3 characters long.',
-            'max_length': 'Username cannot exceed 150 characters.',
-        }
-    )
     password = serializers.CharField(
         write_only=True,
         validators=[validate_password],
@@ -178,12 +181,6 @@ class RegistrationSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        # Check if username already exists
-        if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError({
-                'username': 'This username is already taken.'
-            })
-        
         # Check if email already exists
         if User.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError({
@@ -194,9 +191,29 @@ class RegistrationSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         try:
+            # Generate username from email
+            email = validated_data['email']
+            base_username = email.split('@')[0]  # Get part before @
+            username = base_username
+
+            # Remove any characters that are not allowed in usernames
+            username = re.sub(r'[^a-zA-Z0-9_]', '', username)
+            
+            # Ensure username starts with a letter or number
+            if not username:
+                username = 'user'
+            elif not username[0].isalnum():
+                username = 'u' + username
+            
+            # Ensure username is unique by appending numbers if needed
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
             # Create User object
             user = User.objects.create_user(
-                username=validated_data['username'],
+                username=username,
                 password=validated_data['password'],
                 email=validated_data['email'],
                 first_name=validated_data.get('first_name', ''),
@@ -224,14 +241,25 @@ class RegistrationSerializer(serializers.Serializer):
 class GroupSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source='teacher.username', read_only=True)
     member_count = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = Group
-        fields = ['id', 'name', 'description', 'teacher', 'teacher_name', 'created_at', 'member_count']
+        fields = ['id', 'name', 'description', 'teacher', 'teacher_name', 'created_at', 'member_count', 'members']
         read_only_fields = ['teacher', 'created_at']
 
     def get_member_count(self, obj):
         return obj.memberships.filter(status='approved').count()
+
+    def get_members(self, obj):
+        members = obj.memberships.filter(status='approved').select_related('student')
+        return [{
+            'id': membership.student.id,
+            'username': membership.student.username,
+            'first_name': membership.student.first_name,
+            'last_name': membership.student.last_name,
+            'email': membership.student.email
+        } for membership in members]
 
 
 class GroupDetailSerializer(GroupSerializer):
@@ -283,4 +311,33 @@ class GroupMembershipRequestSerializer(serializers.ModelSerializer):
             'status'
         ]
         read_only_fields = ['status']
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        error_messages={
+            'required': 'Email is required.',
+            'invalid': 'Please enter a valid email address.',
+        }
+    )
+
+    def validate(self, data):
+        email = data.get('email')
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({
+                'email': 'No user found with this email address.'
+            })
+        return data
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        write_only=True,
+        validators=[validate_password],
+        error_messages={
+            'required': 'Password is required.',
+            'min_length': 'Password must be at least 8 characters long.',
+        }
+    )
+    token = serializers.CharField(write_only=True)
 

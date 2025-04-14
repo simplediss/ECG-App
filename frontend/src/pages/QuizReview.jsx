@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchQuizAttempt } from '../api/quizApi';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../api/axiosInstance';
-import '../styles/QuizReview.css';
+import '../styles/pages/QuizReview.css';
 
 const QuizReview = () => {
   const { attemptId } = useParams();
@@ -31,13 +31,14 @@ const QuizReview = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      month: 'short',
-      day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    });
+      minute: '2-digit',
+      hour12: false
+    }).replace(/\//g, '/');
   };
 
   const getCorrectChoice = (choices) => {
@@ -68,19 +69,12 @@ const QuizReview = () => {
     <div className="quiz-review-container">
       <div className="quiz-review-header">
         <h1>Quiz Review</h1>
-        <button onClick={() => navigate('/quiz-history')} className="back-button">
-          Back to Quiz History
-        </button>
       </div>
 
       <div className="quiz-review-summary">
         <div className="summary-card">
           <h3>Student</h3>
-          <p>{quizAttempt.user?.username || 'Unknown Student'}</p>
-        </div>
-        <div className="summary-card">
-          <h3>Quiz</h3>
-          <p>{quizAttempt.quiz?.title || 'Untitled Quiz'}</p>
+          <p>{quizAttempt.user?.first_name && quizAttempt.user?.last_name ? `${quizAttempt.user.first_name} ${quizAttempt.user.last_name}` : quizAttempt.user?.username || 'Unknown Student'}</p>
         </div>
         <div className="summary-card">
           <h3>Date</h3>
@@ -89,7 +83,7 @@ const QuizReview = () => {
         <div className="summary-card">
           <h3>Score</h3>
           <p className={`score ${quizAttempt.score >= 70 ? 'good' : quizAttempt.score >= 50 ? 'average' : 'poor'}`}>
-            {Math.round(quizAttempt.score)}%
+            {Math.round(quizAttempt.score)}
           </p>
         </div>
       </div>
@@ -120,21 +114,6 @@ const QuizReview = () => {
                   />
                 </div>
               )}
-
-              <div className="answer-summary">
-                <div className="student-answer">
-                  <h4>Student's Answer:</h4>
-                  <p className={attempt.is_correct ? 'correct-text' : 'incorrect-text'}>
-                    {attempt.selected_choice?.text || 'No answer selected'}
-                  </p>
-                </div>
-                <div className="correct-answer">
-                  <h4>Correct Answer:</h4>
-                  <p className="correct-text">
-                    {correctChoice?.text || 'No correct answer defined'}
-                  </p>
-                </div>
-              </div>
               
               <div className="choices">
                 {attempt.question?.choices?.map((choice) => (

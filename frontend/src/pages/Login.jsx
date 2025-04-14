@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/Login.css';
+import '../styles/pages/Login.css';
 
 const Login = () => {
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -57,14 +57,14 @@ const Login = () => {
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="loginIdentifier" className="form-label">Username or Email</label>
+            <label htmlFor="loginIdentifier" className="form-label">Email</label>
             <input
-              type="text"
+              type="email"
               id="loginIdentifier"
               className="form-control"
               value={loginIdentifier}
               onChange={(e) => setLoginIdentifier(e.target.value)}
-              placeholder="Enter your username or email"
+              placeholder="Enter your email"
               required
               autoFocus
             />

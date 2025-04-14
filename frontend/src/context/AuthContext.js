@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axiosInstance, { getCsrfToken } from '../api/axiosInstance';
+import { getCsrfToken } from '../api/axiosInstance';
+import * as authApi from '../api/authApi';
 
 const AuthContext = createContext(null);
 
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
         // Get CSRF token first
         await getCsrfToken();
         // Check user status
-        await checkUserStatus();
+        await loadUserStatus();
       } catch (error) {
         console.error('Failed to initialize auth context:', error);
         setUser(null);
@@ -25,12 +26,10 @@ export const AuthProvider = ({ children }) => {
     initialize();
   }, []);
 
-  const checkUserStatus = async () => {
+  const loadUserStatus = async () => {
     try {
-      const response = await axiosInstance.get(`/auth/user-status/`, {
-        withCredentials: true
-      });
-      setUser(response.data.user);
+      const data = await authApi.checkUserStatus();
+      setUser(data.user);
     } catch (error) {
       console.error('User status check failed:', error);
       setUser(null);
@@ -39,23 +38,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (loginIdentifier, password) => {
+  const handleLogin = async (loginIdentifier, password) => {
     try {
-      // Get a fresh CSRF token before login
-      await getCsrfToken();
+      const data = await authApi.login(loginIdentifier, password);
       
-      const response = await axiosInstance.post(`/auth/login/`, {
-        login_identifier: loginIdentifier,
-        password
-      }, {
-        withCredentials: true
-      });
-
       // Set the user data
-      setUser(response.data.user);
+      setUser(data.user);
       
       // Immediately fetch fresh user status to ensure we have complete profile data
-      await checkUserStatus();
+      await loadUserStatus();
       
       return true;
     } catch (error) {
@@ -64,15 +55,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const handleLogout = async () => {
     try {
-      // Get a fresh CSRF token before logout
-      await getCsrfToken();
-      
-      await axiosInstance.post(`/auth/logout/`, {}, {
-        withCredentials: true
-      });
-      
+      await authApi.logout();
       setUser(null);
       return true;
     } catch (error) {
@@ -82,7 +67,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login: handleLogin, logout: handleLogout, loading }}>
       {children}
     </AuthContext.Provider>
   );
