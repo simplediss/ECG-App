@@ -63,7 +63,7 @@ ECG-App/
 
 3. Start the development environment:
    ```bash
-   sh scrips/dev/start_app.sh
+   sh scripts/dev/start_app.sh
    ```
 
 The application will be available at:
