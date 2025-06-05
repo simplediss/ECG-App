@@ -1,21 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/pages/AdminDashboard.css';
+import {
+  Container,
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  Grid,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Alert,
+  CircularProgress,
+  Card,
+  CardContent,
+} from '@mui/material';
 import UserManagement from './UserManagement';
 import { fetchProfiles } from '../api/userApi';
 import { fetchQuizHistory } from '../api/quizApi';
+import * as userApi from '../api/userApi';
 
 const AdminDashboard = () => {
+    const [activeTab, setActiveTab] = useState(0);
     const [students, setStudents] = useState([]);
     const [quizAttempts, setQuizAttempts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [filterBy, setFilterBy] = useState('all');
+    const [success, setSuccess] = useState(null);
+    const [error, setError] = useState(null);
+
+    // Form state for new user
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        first_name: '',
+        last_name: '',
+        password: '',
+        role: 'student',
+        date_of_birth: '',
+        gender: ''
+    });
 
     useEffect(() => {
-        fetchStudents();
-        fetchQuizAttempts();
-    }, []);
+        if (activeTab === 0) {
+            fetchStudents();
+            fetchQuizAttempts();
+        }
+    }, [activeTab]);
+
+    // Clear success message after 3 seconds
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => {
+                setSuccess(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [success]);
 
     const fetchStudents = async () => {
         try {
@@ -110,65 +155,286 @@ const AdminDashboard = () => {
             return comparison;
         });
 
-    if (loading) {
-        return <div className="loading-container">Loading...</div>;
+    const getTotalStudents = () => filteredStudents.length;
+    const getActiveStudents = () => filteredStudents.filter(student => getStudentAttempts(student.user.id).length > 0).length;
+    const getAverageClassScore = () => {
+        const scores = filteredStudents.map(student => getAverageScore(student.user.id));
+        return scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 0;
+    };
+
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            const userData = { ...formData };
+            
+            // Handle date_of_birth: if empty, set to null
+            if (userData.date_of_birth === '') {
+                userData.date_of_birth = null;
+            }
+            
+            await userApi.createUser(userData);
+            setSuccess('User created successfully!');
+            resetForm();
+        } catch (error) {
+            console.error('Error creating user:', error.response?.data || error.message);
+            setError('Failed to create user. Please check the form and try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            username: '',
+            email: '',
+            first_name: '',
+            last_name: '',
+            password: '',
+            role: 'student',
+            date_of_birth: '',
+            gender: ''
+        });
+    };
+
+    const handleFormChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    if (loading && activeTab === 0) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                <CircularProgress />
+            </Box>
+        );
     }
 
     return (
-        <div className="admin-dashboard">
-            <h1>Admin Dashboard</h1>
-            
-            <div className="admin-section">
-                <h2>Admin Controls</h2>
-                <p>The admin-specific controls are currently under development. Check back later for new features.</p>
-            </div>
+        <Container maxWidth="lg">
+            <Box py={4}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Admin Dashboard
+                </Typography>
 
-            <div className="dashboard-controls">
-                <div className="search-box">
-                    <input
-                        type="text"
-                        placeholder="Search students..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="filter-controls">
-                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                        <option value="name">Sort by Name</option>
-                        <option value="attempts">Sort by Attempts</option>
-                        <option value="score">Sort by Average Score</option>
-                    </select>
-                    <select value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
-                        <option value="all">All Students</option>
-                        <option value="active">Active Students</option>
-                        <option value="inactive">Inactive Students</option>
-                        <option value="high">High Performers (≥70%)</option>
-                        <option value="average">Average (50-69%)</option>
-                        <option value="low">Low Performers (less than 50%)</option>
-                    </select>
-                </div>
-            </div>
+                <Tabs 
+                    value={activeTab} 
+                    onChange={(_, v) => setActiveTab(v)} 
+                    sx={{ mb: 3 }}
+                    fullWidth
+                    variant="fullWidth"
+                >
+                    <Tab label="Overview" />
+                    <Tab label="Create User" />
+                    <Tab label="User Management" />
+                </Tabs>
 
-            <div className="dashboard-grid">
-                <section className="dashboard-section students-section">
-                    <h2>Students Overview</h2>
-                    <div className="students-list">
-                        {filteredStudents.map(student => (
-                            student && student.user ? (
-                                <div key={student.id} className="student-card">
-                                    <h3>{student.user.first_name} {student.user.last_name}</h3>
-                                    <p>Username: {student.user.username}</p>
-                                    <p>Email: {student.user.email}</p>
-                                    <p>Quiz Attempts: {getStudentAttempts(student.user.id).length}</p>
-                                    <p>Average Score: {getAverageScore(student.user.id).toFixed(1)}</p>
-                                    <p>Last Active: {getLastActiveDate(getStudentAttempts(student.user.id))?.toLocaleDateString() || 'Never'}</p>
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+                {success && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        {success}
+                    </Alert>
+                )}
+
+                {activeTab === 0 && (
+                    <>
+                        <Grid container spacing={3} sx={{ mb: 4 }}>
+                            <Grid  xs={12} md={4}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Total Students
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {getTotalStudents()}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                            <Grid  xs={12} md={4}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Active Students
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {getActiveStudents()}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                            <Grid  xs={12} md={4}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Average Class Score
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {getAverageClassScore()}%
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        </Grid>
+
+                        <Paper sx={{ p: 2, mb: 3 }}>
+                            <Grid container spacing={2} alignItems="center">
+                                <Grid  xs={12} md={4}>
+                                    <TextField
+                                        fullWidth
+                                        label="Search students"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Grid>
+                                <Grid  xs={12} md={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Sort By</InputLabel>
+                                        <Select
+                                            value={sortBy}
+                                            label="Sort By"
+                                            onChange={(e) => setSortBy(e.target.value)}
+                                        >
+                                            <MenuItem value="name">Name</MenuItem>
+                                            <MenuItem value="attempts">Attempts</MenuItem>
+                                            <MenuItem value="score">Score</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid  xs={12} md={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Filter By</InputLabel>
+                                        <Select
+                                            value={filterBy}
+                                            label="Filter By"
+                                            onChange={(e) => setFilterBy(e.target.value)}
+                                        >
+                                            <MenuItem value="all">All</MenuItem>
+                                            <MenuItem value="active">Active</MenuItem>
+                                            <MenuItem value="inactive">Inactive</MenuItem>
+                                            <MenuItem value="high">High Performers</MenuItem>
+                                            <MenuItem value="average">Average</MenuItem>
+                                            <MenuItem value="low">Low Performers</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+                    </>
+                )}
+
+                {activeTab === 1 && (
+                    <Paper sx={{ p: 3 }}>
+                        <h2>Create New User</h2>
+                        <form onSubmit={handleCreateUser} className="create-user-form">
+                            <div className="form-group">
+                        
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleFormChange}
+                                    required
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="first_name">First Name</label>
+                                    <input
+                                        type="text"
+                                        id="first_name"
+                                        name="first_name"
+                                        value={formData.first_name}
+                                        onChange={handleFormChange}
+                                        required
+                                    />
                                 </div>
-                            ) : null
-                        ))}
-                    </div>
-                </section>
-            </div>
-        </div>
+                                <div className="form-group">
+                                    <label htmlFor="last_name">Last Name</label>
+                                    <input
+                                        type="text"
+                                        id="last_name"
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleFormChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="password">Password</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleFormChange}
+                                    required
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="role">Role</label>
+                                    <select
+                                        id="role"
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleFormChange}
+                                        required
+                                    >
+                                        <option value="student">Student</option>
+                                        <option value="teacher">Teacher</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="gender">Gender</label>
+                                    <select
+                                        id="gender"
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleFormChange}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="date_of_birth">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    id="date_of_birth"
+                                    name="date_of_birth"
+                                    value={formData.date_of_birth}
+                                    onChange={handleFormChange}
+                                />
+                            </div>
+                            <div className="form-actions">
+                                <button type="submit" className="submit-button">Create User</button>
+                                <button type="button" className="reset-button" onClick={resetForm}>Reset Form</button>
+                            </div>
+                        </form>
+                    </Paper>
+                )}
+
+                {activeTab === 2 && (
+                    <UserManagement />
+                )}
+            </Box>
+        </Container>
     );
 };
 
