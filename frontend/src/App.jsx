@@ -16,6 +16,7 @@ import StudentOverview from './pages/StudentOverview';
 import StudentQuizHistory from './pages/StudentQuizHistory';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ValidationPage from './pages/ValidationPage';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -81,6 +82,14 @@ const AppContent = () => {
             <AdminRoute>
               <AdminDashboard />
             </AdminRoute>
+          }
+        />
+        <Route
+          path="/validation"
+          element={
+            <TeacherOrAdminRoute>
+              <ValidationPage />
+            </TeacherOrAdminRoute>
           }
         />
         <Route

@@ -55,6 +55,16 @@ export const generateRandomQuiz = async (choices_per_question = 6) => {
   }
 };
 
+// Fetch all possible label descriptions
+export const fetchAllLabels = async () => {
+  try {
+    const response = await axiosInstance.get('validations/all_labels/');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Get a specific quiz attempt
 export const fetchQuizAttempt = async (attemptId) => {
   try {

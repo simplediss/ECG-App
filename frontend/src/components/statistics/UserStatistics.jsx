@@ -99,7 +99,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                 </Typography>
 
                 <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid  xs={12} sm={6}>
                         <TextField
                             label="Days Limit"
                             type="number"
@@ -128,7 +128,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                             }}
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid  xs={12} sm={6}>
                         <TextField
                             label="Quiz Limit"
                             type="number"
@@ -185,7 +185,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                             {statistics && (
                                 <>
                                     <Grid container spacing={3}>
-                                        <Grid item xs={12} sm={6} md={3}>
+                                        <Grid  xs={12} sm={6} md={3}>
                                             <Paper elevation={2} sx={{ 
                                                 p: 2,
                                                 backgroundColor: darkMode ? 'var(--bg-paper)' : undefined,
@@ -201,7 +201,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                                                 </Typography>
                                             </Paper>
                                         </Grid>
-                                        <Grid item xs={12} sm={6} md={3}>
+                                        <Grid  xs={12} sm={6} md={3}>
                                             <Paper elevation={2} sx={{ 
                                                 p: 2,
                                                 backgroundColor: darkMode ? 'var(--bg-paper)' : undefined,
@@ -217,7 +217,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                                                 </Typography>
                                             </Paper>
                                         </Grid>
-                                        <Grid item xs={12} sm={6} md={3}>
+                                        <Grid  xs={12} sm={6} md={3}>
                                             <Paper elevation={2} sx={{ 
                                                 p: 2,
                                                 backgroundColor: darkMode ? 'var(--bg-paper)' : undefined,
@@ -233,7 +233,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                                                 </Typography>
                                             </Paper>
                                         </Grid>
-                                        <Grid item xs={12} sm={6} md={3}>
+                                        <Grid  xs={12} sm={6} md={3}>
                                             <Paper elevation={2} sx={{ 
                                                 p: 2,
                                                 backgroundColor: darkMode ? 'var(--bg-paper)' : undefined,

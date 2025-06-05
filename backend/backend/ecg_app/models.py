@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from simple_history.models import HistoricalRecords
 
 # ---------------------------------------- [ECG Data Models] ----------------------------------------
 
@@ -42,6 +42,9 @@ class EcgSamplesDocLabels(models.Model):
     sample_id = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='doc_labels')
     label_id = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='samples')
 
+    class Meta:
+        unique_together = ('sample_id',)
+
     def __str__(self):
         return f"Sample {self.sample_id} - Label {self.label_id}"
 
@@ -53,6 +56,28 @@ class EcgSamplesSnomed(models.Model):
     def __str__(self):
         return f"Sample {self.sample_id} - Label {self.label_id}"
     
+
+
+class EcgSampleValidation(models.Model):
+    """Tracks teacher validations of ECG samples."""
+    sample = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='validations')
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sample_validations')
+    is_valid = models.BooleanField(default=False)
+    comments = models.TextField(blank=True, null=True)
+    validated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    curr_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='curr_tag', blank=True, null=True)
+    new_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='new_tag', blank=True, null=True)
+
+    history = HistoricalRecords()
+
+    class Meta:
+        unique_together = ('sample', 'teacher')
+        ordering = ['-validated_at']
+
+    def __str__(self):
+        return f"Validation by {self.teacher.username} for Sample {self.sample.sample_id}"
+
 
 # ---------------------------------------- [User Models] ----------------------------------------
 # Django's built-in User model provides login/logout functionality and user authentication. 
