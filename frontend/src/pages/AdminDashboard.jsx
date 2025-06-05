@@ -1,12 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/pages/AdminDashboard.css';
+import {
+  Container,
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  Grid,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Alert,
+  CircularProgress,
+  Card,
+  CardContent,
+} from '@mui/material';
 import UserManagement from './UserManagement';
 import { fetchProfiles } from '../api/userApi';
 import { fetchQuizHistory } from '../api/quizApi';
 import * as userApi from '../api/userApi';
 
 const AdminDashboard = () => {
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState(0);
     const [students, setStudents] = useState([]);
     const [quizAttempts, setQuizAttempts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -29,7 +46,7 @@ const AdminDashboard = () => {
     });
 
     useEffect(() => {
-        if (activeTab === 'overview') {
+        if (activeTab === 0) {
             fetchStudents();
             fetchQuizAttempts();
         }
@@ -188,230 +205,236 @@ const AdminDashboard = () => {
         }));
     };
 
-    if (loading && activeTab === 'overview') {
-        return <div className="loading-container">Loading...</div>;
+    if (loading && activeTab === 0) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                <CircularProgress />
+            </Box>
+        );
     }
 
     return (
-        <div className="admin-dashboard">
-            <h1>Admin Dashboard</h1>
-            
-            <div className="admin-tabs">
-                <button 
-                    className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('overview')}
+        <Container maxWidth="lg">
+            <Box py={4}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Admin Dashboard
+                </Typography>
+
+                <Tabs 
+                    value={activeTab} 
+                    onChange={(_, v) => setActiveTab(v)} 
+                    sx={{ mb: 3 }}
+                    fullWidth
+                    variant="fullWidth"
                 >
-                    Overview
-                </button>
-                <button 
-                    className={`tab-button ${activeTab === 'create' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('create')}
-                >
-                    Create User
-                </button>
-                <button 
-                    className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('users')}
-                >
-                    User Management
-                </button>
-            </div>
+                    <Tab label="Overview" />
+                    <Tab label="Create User" />
+                    <Tab label="User Management" />
+                </Tabs>
 
-            {error && <div className="error-message">{error}</div>}
-            {success && <div className="success-message">{success}</div>}
+                {error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+                {success && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                        {success}
+                    </Alert>
+                )}
 
-            {activeTab === 'overview' ? (
-                <>
-                    <div className="stats-container">
-                        <div className="stat-card">
-                            <h3>Total Students</h3>
-                            <p className="stat-value">{getTotalStudents()}</p>
-                        </div>
-                        <div className="stat-card">
-                            <h3>Active Students</h3>
-                            <p className="stat-value">{getActiveStudents()}</p>
-                        </div>
-                        <div className="stat-card">
-                            <h3>Average Class Score</h3>
-                            <p className="stat-value">{getAverageClassScore()}%</p>
-                        </div>
-                    </div>
+                {activeTab === 0 && (
+                    <>
+                        <Grid container spacing={3} sx={{ mb: 4 }}>
+                            <Grid  xs={12} md={4}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Total Students
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {getTotalStudents()}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                            <Grid  xs={12} md={4}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Active Students
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {getActiveStudents()}
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                            <Grid  xs={12} md={4}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Average Class Score
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {getAverageClassScore()}%
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        </Grid>
 
-                    <div className="dashboard-controls">
-                        <div className="search-box">
-                            <input
-                                type="text"
-                                placeholder="Search students..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <div className="filter-controls">
-                            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                                <option value="name">Sort by Name</option>
-                                <option value="attempts">Sort by Attempts</option>
-                                <option value="score">Sort by Average Score</option>
-                            </select>
-                            <select value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
-                                <option value="all">All Students</option>
-                                <option value="active">Active Students</option>
-                                <option value="inactive">Inactive Students</option>
-                                <option value="high">High Performers (≥70%)</option>
-                                <option value="average">Average (50-69%)</option>
-                                <option value="low">Low Performers (less than 50%)</option>
-                            </select>
-                        </div>
-                    </div>
+                        <Paper sx={{ p: 2, mb: 3 }}>
+                            <Grid container spacing={2} alignItems="center">
+                                <Grid  xs={12} md={4}>
+                                    <TextField
+                                        fullWidth
+                                        label="Search students"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </Grid>
+                                <Grid  xs={12} md={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Sort By</InputLabel>
+                                        <Select
+                                            value={sortBy}
+                                            label="Sort By"
+                                            onChange={(e) => setSortBy(e.target.value)}
+                                        >
+                                            <MenuItem value="name">Name</MenuItem>
+                                            <MenuItem value="attempts">Attempts</MenuItem>
+                                            <MenuItem value="score">Score</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid  xs={12} md={4}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Filter By</InputLabel>
+                                        <Select
+                                            value={filterBy}
+                                            label="Filter By"
+                                            onChange={(e) => setFilterBy(e.target.value)}
+                                        >
+                                            <MenuItem value="all">All</MenuItem>
+                                            <MenuItem value="active">Active</MenuItem>
+                                            <MenuItem value="inactive">Inactive</MenuItem>
+                                            <MenuItem value="high">High Performers</MenuItem>
+                                            <MenuItem value="average">Average</MenuItem>
+                                            <MenuItem value="low">Low Performers</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+                    </>
+                )}
 
-                    <div className="students-grid">
-                        {filteredStudents.map(student => (
-                            student && student.user ? (
-                                <div key={student.id} className="student-card">
-                                    <div className="student-header">
-                                        <h3>{student.user.first_name} {student.user.last_name}</h3>
-                                        <span className={`status-badge ${getStudentAttempts(student.user.id).length > 0 ? 'active' : 'inactive'}`}>
-                                            {getStudentAttempts(student.user.id).length > 0 ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </div>
-                                    <div className="student-info">
-                                        <div className="info-group">
-                                            <label>Username:</label>
-                                            <span>{student.user.username}</span>
-                                        </div>
-                                        <div className="info-group">
-                                            <label>Email:</label>
-                                            <span>{student.user.email}</span>
-                                        </div>
-                                        <div className="info-group">
-                                            <label>Quiz Attempts:</label>
-                                            <span>{getStudentAttempts(student.user.id).length}</span>
-                                        </div>
-                                        <div className="info-group">
-                                            <label>Average Score:</label>
-                                            <span className={`score ${getAverageScore(student.user.id) >= 70 ? 'high' : getAverageScore(student.user.id) >= 50 ? 'medium' : 'low'}`}>
-                                                {getAverageScore(student.user.id).toFixed(1)}%
-                                            </span>
-                                        </div>
-                                        <div className="info-group">
-                                            <label>Last Active:</label>
-                                            <span>{getLastActiveDate(getStudentAttempts(student.user.id))?.toLocaleDateString() || 'Never'}</span>
-                                        </div>
-                                    </div>
+                {activeTab === 1 && (
+                    <Paper sx={{ p: 3 }}>
+                        <h2>Create New User</h2>
+                        <form onSubmit={handleCreateUser} className="create-user-form">
+                            <div className="form-group">
+                        
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleFormChange}
+                                    required
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="first_name">First Name</label>
+                                    <input
+                                        type="text"
+                                        id="first_name"
+                                        name="first_name"
+                                        value={formData.first_name}
+                                        onChange={handleFormChange}
+                                        required
+                                    />
                                 </div>
-                            ) : null
-                        ))}
-                    </div>
-                </>
-            ) : activeTab === 'create' ? (
-                <div className="create-user-section">
-                    <h2>Create New User</h2>
-                    <form onSubmit={handleCreateUser} className="create-user-form">
-                        <div className="form-group">
-                            <label htmlFor="username">Username</label>
-                            <input
-                                type="text"
-                                id="username"
-                                name="username"
-                                value={formData.username}
-                                onChange={handleFormChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="email">Email</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleFormChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="last_name">Last Name</label>
+                                    <input
+                                        type="text"
+                                        id="last_name"
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleFormChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
                             <div className="form-group">
-                                <label htmlFor="first_name">First Name</label>
+                                <label htmlFor="password">Password</label>
                                 <input
-                                    type="text"
-                                    id="first_name"
-                                    name="first_name"
-                                    value={formData.first_name}
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
                                     onChange={handleFormChange}
                                     required
                                 />
                             </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="role">Role</label>
+                                    <select
+                                        id="role"
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleFormChange}
+                                        required
+                                    >
+                                        <option value="student">Student</option>
+                                        <option value="teacher">Teacher</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="gender">Gender</label>
+                                    <select
+                                        id="gender"
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleFormChange}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div className="form-group">
-                                <label htmlFor="last_name">Last Name</label>
+                                <label htmlFor="date_of_birth">Date of Birth</label>
                                 <input
-                                    type="text"
-                                    id="last_name"
-                                    name="last_name"
-                                    value={formData.last_name}
+                                    type="date"
+                                    id="date_of_birth"
+                                    name="date_of_birth"
+                                    value={formData.date_of_birth}
                                     onChange={handleFormChange}
-                                    required
                                 />
                             </div>
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="password">Password</label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleFormChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="role">Role</label>
-                                <select
-                                    id="role"
-                                    name="role"
-                                    value={formData.role}
-                                    onChange={handleFormChange}
-                                    required
-                                >
-                                    <option value="student">Student</option>
-                                    <option value="teacher">Teacher</option>
-                                </select>
+                            <div className="form-actions">
+                                <button type="submit" className="submit-button">Create User</button>
+                                <button type="button" className="reset-button" onClick={resetForm}>Reset Form</button>
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="gender">Gender</label>
-                                <select
-                                    id="gender"
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleFormChange}
-                                >
-                                    <option value="">Select Gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="date_of_birth">Date of Birth</label>
-                            <input
-                                type="date"
-                                id="date_of_birth"
-                                name="date_of_birth"
-                                value={formData.date_of_birth}
-                                onChange={handleFormChange}
-                            />
-                        </div>
-                        <div className="form-actions">
-                            <button type="submit" className="submit-button">Create User</button>
-                            <button type="button" className="reset-button" onClick={resetForm}>Reset Form</button>
-                        </div>
-                    </form>
-                </div>
-            ) : (
-                <UserManagement />
-            )}
-        </div>
+                        </form>
+                    </Paper>
+                )}
+
+                {activeTab === 2 && (
+                    <UserManagement />
+                )}
+            </Box>
+        </Container>
     );
 };
 
