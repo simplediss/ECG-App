@@ -105,6 +105,18 @@ const Navbar = () => {
               </li>
             )}
             
+            {user?.profile?.role === 'teacher' || user?.is_staff && (
+              <li className="nav-item">
+                <Link 
+                  to="/validation" 
+                  className={`nav-link ${isActive('/validation')}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Validation
+                </Link>
+              </li>
+            )}
+            
             <li className="nav-item">
               <Link 
                 to="/quiz-history" 

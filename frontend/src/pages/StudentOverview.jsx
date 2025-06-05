@@ -169,7 +169,7 @@ const StudentOverview = () => {
               justifyContent: 'space-between'
             }}
           >
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid  xs={12} md={6} lg={4}>
               <Box sx={{ 
                 mb: { xs: 2, sm: 0 },
                 display: 'flex',
@@ -186,7 +186,7 @@ const StudentOverview = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid  xs={12} md={6} lg={4}>
               <Box sx={{ 
                 mb: { xs: 2, sm: 0 },
                 display: 'flex',
@@ -203,7 +203,7 @@ const StudentOverview = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid  xs={12} md={6} lg={4}>
               <Box sx={{ 
                 mb: { xs: 2, sm: 0 },
                 display: 'flex',
@@ -220,7 +220,7 @@ const StudentOverview = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid  xs={12} md={6} lg={4}>
               <Box sx={{ 
                 mb: { xs: 2, sm: 0 },
                 display: 'flex',
@@ -237,7 +237,7 @@ const StudentOverview = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+            <Grid  xs={12} md={6} lg={4}>
               <Box sx={{ 
                 display: 'flex',
                 flexDirection: 'column',
