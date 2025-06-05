@@ -1,6 +1,6 @@
 import re
 from rest_framework import serializers
-from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
+from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed, EcgSampleValidation
 from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, Group, GroupMembership
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -340,4 +340,55 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         }
     )
     token = serializers.CharField(write_only=True)
+
+
+class EcgSampleValidationSerializer(serializers.ModelSerializer):
+    teacher = UserSerializer(read_only=True)
+    curr_tag = EcgDocLabelsSerializer(read_only=True)
+    new_tag = EcgDocLabelsSerializer(read_only=True)
+
+
+    curr_tag_id = serializers.PrimaryKeyRelatedField(
+        queryset=EcgDocLabels.objects.all(),
+        source='curr_tag',
+        required=False,
+        allow_null=True,
+        write_only=True
+    )
+
+    new_tag_id = serializers.PrimaryKeyRelatedField(
+        queryset=EcgDocLabels.objects.all(),
+        source='new_tag',
+        required=False,
+        allow_null=True,
+        write_only=True
+    )
+
+    sample = serializers.PrimaryKeyRelatedField(queryset=EcgSamples.objects.all())
+    sample_path = serializers.CharField(source='sample.sample_path', read_only=True)
+    history = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EcgSampleValidation
+        fields = [
+            'id', 'sample', 'sample_path', 'teacher', 'is_valid', 'comments',
+            'validated_at', 'updated_at', 'curr_tag', 'new_tag',
+            'curr_tag_id', 'new_tag_id', 'history'
+        ]
+        read_only_fields = ['teacher', 'validated_at', 'updated_at', 'history']
+
+    def get_history(self, obj):
+        return [
+            {
+                'changed_at': hist.history_date,
+                'changed_by': hist.history_user.username if hist.history_user else None,
+                'is_valid': hist.is_valid,
+                'comments': hist.comments,
+                'curr_tag_id': hist.curr_tag_id,
+                'curr_tag_desc': hist.curr_tag.label_desc if hist.curr_tag else None,
+                'new_tag_id': hist.new_tag_id,
+                'new_tag_desc': hist.new_tag.label_desc if hist.new_tag else None,
+            }
+            for hist in obj.history.all().order_by('-history_date')
+        ]
 

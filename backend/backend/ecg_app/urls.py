@@ -10,6 +10,7 @@ from .views.profile import ProfileByUsernameView, ProfileViewSet, update_user_pr
 from .views.quiz import CheckAnswerView, QuizAttemptViewSet, QuizViewSet
 from .views.templates import home, view_ecg_samples, view_ecg_samples_snomed, view_ecg_snomed, view_users, view_quizzes, view_quiz_attempts
 from .views.statistics import UserStatisticsView
+from .views.validation import EcgSampleValidationViewSet
 
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -22,6 +23,7 @@ router.register(r'quiz-attempts', QuizAttemptViewSet, basename='quiz-attempts')
 router.register(r'groups', GroupViewSet, basename='group')
 router.register(r'group-memberships', GroupMembershipViewSet, basename='group-membership')
 router.register(r'group-requests', GroupMembershipRequestViewSet, basename='group-request')
+router.register(r'validations', EcgSampleValidationViewSet, basename='validation')
 
 
 urlpatterns = [
