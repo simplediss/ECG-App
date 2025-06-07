@@ -63,17 +63,23 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
     // Handle limit changes with debouncing
     const handleDaysLimitChange = (e) => {
         const value = e.target.value;
-        if (value === '' || parseInt(value) >= 0) {
+        if (value === '' || parseInt(value) > 0) {
             setDaysLimit(value);
             debouncedFetchStatistics(value, quizLimit);
+        } else if (parseInt(value) <= 0) {
+            setDaysLimit('');
+            debouncedFetchStatistics('', quizLimit);
         }
     };
 
     const handleQuizLimitChange = (e) => {
         const value = e.target.value;
-        if (value === '' || parseInt(value) >= 0) {
+        if (value === '' || parseInt(value) > 0) {
             setQuizLimit(value);
             debouncedFetchStatistics(daysLimit, value);
+        } else if (parseInt(value) <= 0) {
+            setQuizLimit('');
+            debouncedFetchStatistics(daysLimit, '');
         }
     };
 
@@ -98,7 +104,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                     {title}
                 </Typography>
 
-                <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid container spacing={2} sx={{ mb: 3 }} alignItems="center" justifyContent="center">
                     <Grid  xs={12} sm={6}>
                         <TextField
                             label="Days Limit"
@@ -184,7 +190,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                         <Box>
                             {statistics && (
                                 <>
-                                    <Grid container spacing={3}>
+                                    <Grid container spacing={3}  justifyContent="center">
                                         <Grid  xs={12} sm={6} md={3}>
                                             <Paper elevation={2} sx={{ 
                                                 p: 2,
@@ -194,7 +200,7 @@ const UserStatistics = ({ userId, title = 'User Statistics' }) => {
                                                 transition: 'all 0.3s ease',
                                             }}>
                                                 <Typography variant="subtitle2" sx={{ color: darkMode ? 'var(--text-secondary)' : 'text.secondary' }}>
-                                                    Total Exams
+                                                    Total Quizzes
                                                 </Typography>
                                                 <Typography variant="h4" sx={{ color: darkMode ? 'var(--primary)' : undefined }}>
                                                     {statistics.total_exams}
