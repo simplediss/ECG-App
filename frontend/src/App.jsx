@@ -17,6 +17,7 @@ import StudentQuizHistory from './pages/StudentQuizHistory';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ValidationPage from './pages/ValidationPage';
+import Profile from './pages/Profile';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -136,7 +137,7 @@ const AppContent = () => {
           path="/profile"
           element={
             <PrivateRoute>
-              <div>Profile Page (Coming Soon)</div>
+              <Profile />
             </PrivateRoute>
           }
         />

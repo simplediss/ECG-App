@@ -191,11 +191,9 @@ const Navbar = () => {
                 {showDropdown && (
                   <div className="dropdown-menu">
                     <button onClick={() => handleNavigation('/profile')} className="dropdown-item">
-                      <span className="dropdown-icon">👤</span> Profile
+                      <span className="dropdown-icon">⚙️</span> Profile
                     </button>
-                    <button onClick={() => handleNavigation('/settings')} className="dropdown-item">
-                      <span className="dropdown-icon">⚙️</span> Settings
-                    </button>
+                    
                     <div className="dropdown-divider"></div>
                     <button onClick={handleLogout} className="dropdown-item text-danger">
                       <span className="dropdown-icon">🚪</span> Logout

@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 
 from ..models import Profile
 from ..serializers import ProfileSerializer
@@ -34,16 +35,21 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class ProfileByUsernameView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
+    permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
 
     def get_object(self):
         username = self.kwargs['username']
-        return get_object_or_404(Profile, user__username=username)
+        user = self.request.user
+        # Allow staff, teachers, or the user themselves
+        if user.is_staff or (hasattr(user, 'profile') and getattr(user.profile, 'role', None) == 'teacher') or user.username == username:
+            return get_object_or_404(Profile, user__username=username)
+        else:
+            raise PermissionDenied('You do not have permission to view this profile.')
 
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated, IsTeacherOrAdmin])
+@permission_classes([IsAuthenticated])
 def update_user_profile(request, profile_id):
     """
     Custom endpoint to update both User and Profile models in a single request.
