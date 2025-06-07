@@ -165,7 +165,8 @@ const ValidationInterface = () => {
 
   const getEcgImageUrl = (sample) => {
     if (!sample?.path) return null;
-    return getImageUrl(sample.path);
+    // Ensure the path ends with .png
+    return getImageUrl(sample.path.endsWith('.png') ? sample.path : sample.path + '.png');
   };
 
   const handleInvalidClick = (event) => {
