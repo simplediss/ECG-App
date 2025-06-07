@@ -32,6 +32,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { getImageUrl } from '../../api/axiosInstance';
 import { useAuth } from '../../context/AuthContext';
 import axiosInstance from '../../api/axiosInstance';
@@ -52,14 +53,12 @@ const ValidationHistory = () => {
 
   const [filter, setFilter] = useState('all');
 
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [editingValidation, setEditingValidation] = useState(null);
-  const [editForm, setEditForm] = useState({ is_valid: true, comments: '', new_tag_id: '' });
-
   const [allLabels, setAllLabels] = useState([]);
   const [openHistoryDialog, setOpenHistoryDialog] = useState(false);
   const [historyEntries, setHistoryEntries] = useState([]);
   const [historyParentId, setHistoryParentId] = useState(null);
+
+  const [darkMode, setDarkMode] = useState(false);
 
   // ─── Fetch all possible labels on mount ───────────────────────────────────────
   useEffect(() => {
@@ -114,60 +113,6 @@ const ValidationHistory = () => {
     setOpenImage(true);
   };
 
-  // ─── When "Edit" is clicked, prefill the form with the chosen validation record ───
-  const handleEditClick = (validation) => {
-    setEditingValidation(validation);
-    setEditForm({
-      is_valid: validation.is_valid,
-      comments: validation.comments || '',
-      // Always default to the existing "new_tag" if set; otherwise use curr_tag
-      new_tag_id: String(validation.new_label?.id || validation.curr_label?.id || '')
-    });
-    setOpenEditDialog(true);
-  };
-
-  // ─── When "Save Changes" is clicked, PATCH & update local state ────────────────
-  const handleEditSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const updatedValidation = await updateValidation(editingValidation.validation_id, {
-        is_valid: editForm.is_valid,
-        comments: editForm.comments,
-        new_tag_id: editForm.new_tag_id
-      });
-
-      // Update local state to reflect new data:
-      setValidations(prevValidations =>
-        prevValidations.map(v =>
-          v.validation_id === editingValidation.validation_id
-            ? {
-                ...v,
-                is_valid: updatedValidation.is_valid,
-                comments: updatedValidation.comments,
-                new_label: {
-                  id: updatedValidation.new_tag.id,
-                  desc: updatedValidation.new_tag.label_desc
-                }
-              }
-            : v
-        )
-      );
-
-      setOpenEditDialog(false);
-      setEditingValidation(null);
-    } catch (err) {
-      setError('Failed to update validation');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false);
-    setEditingValidation(null);
-    setEditForm({ is_valid: true, comments: '', new_tag_id: '' });
-  };
-
   const handleCloseHistoryDialog = () => {
     setOpenHistoryDialog(false);
     setHistoryEntries([]);
@@ -191,7 +136,21 @@ const ValidationHistory = () => {
             },
           },
          }}>
-          <CardContent>
+          <CardContent
+          sx={{
+            backgroundColor: 'var(--bg-white)',
+            color:  'var(--text-primary)', 
+            '& *': {
+              color: 'var(--text-primary)',
+            },
+            '&:hover': {
+              backgroundColor: 'var(--bg-white)',
+              '& .MuiTableCell-root': {
+                color: 'var(--text-light)',
+              },
+            },
+          }}
+          >
             <Grid container spacing={2}>
               <Grid xs={4}>
                 <img
@@ -216,33 +175,27 @@ const ValidationHistory = () => {
                   <Typography variant="body2"><strong>Date:</strong> {new Date(v.history[0]?.created_at).toLocaleString()}</Typography>
                   <Typography variant="body2"><strong>Prev tag:</strong> {v.prev_tag?.label_desc || 'N/A'}</Typography>
                   <Typography variant="body2"><strong>New tag:</strong> {v.new_tag?.label_desc || 'N/A'}</Typography>
-                  <Box>
-                    {/* Only teachers or staff can see the pencil */}
-                    {(user?.profile?.role === 'teacher' || user?.is_staff) && (
-                      <IconButton 
-                      size="small" 
-                      onClick={() => handleEditClick(v)} 
-                      color="--primary" 
-                      sx={{ 
-                        mr: 1,
-                        '&:hover': {
-                          color: 'var(--primary)',
-                        },
-                      }}>
-                        <EditIcon />
-                      </IconButton>
-                    )}
-                    <Button
+                  <Box
+                  name="view-history-box"
+                  >
+
+                    <IconButton
+                    name="view-history"
                       size="small"
-                      variant="outlined"
                       onClick={() => {
                         setHistoryEntries(v.history || []);
                         setHistoryParentId(v);
                         setOpenHistoryDialog(true);
                       }}
+                      sx={{
+                        color: 'var(--text-primary)',
+                        '&:hover': {
+                          color: 'var(--primary)',
+                        },
+                      }}
                     >
-                      View History
-                    </Button>
+                      <VisibilityIcon />
+                    </IconButton>
                   </Box>
                 </Stack>
               </Grid>
@@ -289,22 +242,23 @@ const ValidationHistory = () => {
         <TableCell>{v.new_tag?.label_desc || 'N/A'}</TableCell>
         <TableCell>
           <Stack direction="row" spacing={1}>
-            {(user?.profile?.role === 'teacher' || user?.is_staff) && (
-              <IconButton size="small" onClick={() => handleEditClick(v)} color="primary">
-                <EditIcon />
-              </IconButton>
-            )}
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => {
-                setHistoryEntries(v.history || []);
-                setHistoryParentId(v);
-                setOpenHistoryDialog(true);
-              }}
-            >
-              View History
-            </Button>
+          <IconButton
+                    name="view-history"
+                      size="small"
+                      onClick={() => {
+                        setHistoryEntries(v.history || []);
+                        setHistoryParentId(v);
+                        setOpenHistoryDialog(true);
+                      }}
+                      sx={{
+                        color: 'var(--text-primary)',
+                        '&:hover': {
+                          color: 'var(--primary)',
+                        },
+                      }}
+                    >
+                      <VisibilityIcon />
+                    </IconButton>
           </Stack>
         </TableCell>
       </TableRow>
@@ -446,7 +400,7 @@ const ValidationHistory = () => {
                 backgroundColor: 'var(--bg-white)',
               }}
               >
-                {['Sample', 'Sample ID', 'Validated by', 'Valid', 'Comments', 'Date', 'Prev tag', 'New tag', 'Review'].map((header) => (
+                {['Sample', 'Sample ID', 'Validated by', 'Valid', 'Comments', 'Date', 'Prev tag', 'New tag', 'History'].map((header) => (
                   <TableCell
                   key={header}
                   sx={{
@@ -499,79 +453,6 @@ const ValidationHistory = () => {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Edit Validation Dialog ────────────────────────────────────────────────── */}
-      <Dialog
-        open={openEditDialog}
-        onClose={handleCloseEditDialog}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle>
-          Edit Validation
-          <IconButton
-            size="small"
-            onClick={handleCloseEditDialog}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Validation Status</InputLabel>
-              <Select
-                value={editForm.is_valid}
-                label="Validation Status"
-                onChange={(e) => setEditForm(prev => ({ ...prev, is_valid: e.target.value }))}
-              >
-                <MenuItem value={true}>Valid</MenuItem>
-                <MenuItem value={false}>Invalid</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>New Label</InputLabel>
-              <Select
-                value={editForm.new_tag_id || ''}
-                label="New Label"
-                onChange={(e) => setEditForm(prev => ({ ...prev, new_tag_id: e.target.value }))}
-              >
-                {allLabels.map(label => (
-                  <MenuItem key={label.label_id} value={String(label.label_id)}>
-                    {label.label_desc}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Comments"
-              multiline
-              rows={4}
-              value={editForm.comments}
-              onChange={(e) => setEditForm(prev => ({ ...prev, comments: e.target.value }))}
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditDialog} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleEditSubmit}
-            variant="contained"
-            color="primary"
-            disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={18} /> : null}
-          >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* ─── History Dialog ────────────────────────────────────────────────────────── */}
       <Dialog
         open={openHistoryDialog}
@@ -579,8 +460,19 @@ const ValidationHistory = () => {
         maxWidth="sm"
         fullWidth
         fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            backgroundColor: 'var(--bg-white)',
+            color: 'var(--text-primary)',
+          }
+        }}
       >
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            backgroundColor: 'var(--bg-white)',
+            color: 'var(--text-primary)',
+          }}
+        >
           History for Sample #{historyParentId?.sample_id}
           <IconButton
             size="small"
@@ -590,7 +482,12 @@ const ValidationHistory = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers
+          sx={{
+            backgroundColor: 'var(--bg-white)',
+            color: 'var(--text-primary)',
+          }}
+        >
           {historyEntries.length === 0 ? (
             <Typography>No history recorded.</Typography>
           ) : (
