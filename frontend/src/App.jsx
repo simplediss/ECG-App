@@ -18,6 +18,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ValidationPage from './pages/ValidationPage';
 import Profile from './pages/Profile';
+import EcgRoadPage from './pages/EcgRoadPage';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -159,6 +160,14 @@ const AppContent = () => {
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/ecg-road"
+          element={
+            <PrivateRoute>
+              <EcgRoadPage />
+            </PrivateRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/home" />} />
       </Routes>
     </div>
