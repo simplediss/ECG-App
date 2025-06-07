@@ -59,24 +59,35 @@ class EcgSamplesSnomed(models.Model):
 
 
 class EcgSampleValidation(models.Model):
-    """Tracks teacher validations of ECG samples."""
+    """Tracks pending validations of ECG samples."""
     sample = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='validations')
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sample_validations')
-    is_valid = models.BooleanField(default=False)
-    comments = models.TextField(blank=True, null=True)
-    validated_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    curr_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='curr_tag', blank=True, null=True)
+    have_been_validated = models.BooleanField(default=False)
+    prev_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='prev_tag', blank=True, null=True)
     new_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='new_tag', blank=True, null=True)
 
-    history = HistoricalRecords()
-
     class Meta:
-        unique_together = ('sample', 'teacher')
-        ordering = ['-validated_at']
+        unique_together = ('sample',)
+        ordering = ['sample']
 
     def __str__(self):
-        return f"Validation by {self.teacher.username} for Sample {self.sample.sample_id}"
+        return f"Validation for Sample {self.sample.sample_id}"
+
+
+class ValidationHistory(models.Model):
+    """Tracks the history of validations."""
+    validation = models.ForeignKey(EcgSampleValidation, on_delete=models.CASCADE, related_name='history')
+    validated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='validation_history')
+    sample = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='validation_history')
+    prev_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='history_prev_tag')
+    new_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='history_new_tag')
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Validation history for Sample {self.sample.sample_id} by {self.validated_by.username}"
 
 
 # ---------------------------------------- [User Models] ----------------------------------------

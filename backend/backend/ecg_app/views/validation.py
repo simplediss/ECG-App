@@ -3,7 +3,7 @@ from django.utils.decorators import method_decorator
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from ..models import EcgSampleValidation, EcgSamples, EcgDocLabels, EcgSamplesDocLabels
+from ..models import EcgSampleValidation, ValidationHistory, EcgSamples, EcgDocLabels, EcgSamplesDocLabels
 from ..serializers import EcgSampleValidationSerializer
 from ..permissions import IsTeacherOrAdmin
 from rest_framework.permissions import IsAuthenticated
@@ -30,9 +30,9 @@ class EcgSampleValidationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return validations for the current teacher or all if admin."""
         user = self.request.user
-        if user.is_staff:
+        if user.is_staff or (hasattr(user, 'profile') and getattr(user.profile, 'role', None) == 'teacher'):
             return EcgSampleValidation.objects.all()
-        return EcgSampleValidation.objects.filter(teacher=user)
+        return EcgSampleValidation.objects.filter(history__validated_by=user).distinct()
 
     @action(detail=False, methods=['get'])
     def all_labels(self, request):
@@ -43,151 +43,143 @@ class EcgSampleValidationViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
     def perform_create(self, serializer):
-        # This line actually writes the new EcgSampleValidation(record):
-        new_validation = serializer.save(teacher=self.request.user)
-
-        # If the teacher marked is_valid=False, we must update the join table:
-        if not new_validation.is_valid and new_validation.new_tag:
-            sample_obj = new_validation.sample  # The EcgSamples instance
-            new_label  = new_validation.new_tag # The EcgDocLabels instance
-
-            EcgSamplesDocLabels.objects.update_or_create(
-                sample_id=sample_obj,
-                defaults={'label_id': new_label}
-            )
-
+        validation = serializer.save()
+        # Create validation history entry
+        ValidationHistory.objects.create(
+            validation=validation,
+            validated_by=self.request.user,
+            sample=validation.sample,
+            prev_tag=validation.prev_tag,
+            new_tag=validation.new_tag
+        )
+        # Update the validation status
+        validation.have_been_validated = True
+        validation.save()
 
     def perform_update(self, serializer):
-        updated_validation = serializer.save()
+        # Save the updated validation object
+        validation = serializer.save()
 
-        # Again, if is_valid==False, swap the join table’s label to new_tag
-        if not updated_validation.is_valid and updated_validation.new_tag:
-            sample_obj = updated_validation.sample
-            new_label  = updated_validation.new_tag
+        # Get the new values from the serializer's validated data
+        prev_tag = serializer.validated_data.get('prev_tag', validation.prev_tag)
+        new_tag = serializer.validated_data.get('new_tag', validation.new_tag)
 
-            EcgSamplesDocLabels.objects.update_or_create(
-                sample_id=sample_obj,
-                defaults={'label_id': new_label}
-            )
-                
+        if new_tag is None:
+            raise serializers.ValidationError("new_tag must not be null")
+
+        print(f'Creating ValidationHistory: prev_tag={prev_tag}, new_tag={new_tag}')
+
+        # Create validation history entry for the update
+        ValidationHistory.objects.create(
+            validation=validation,
+            validated_by=self.request.user,
+            sample=validation.sample,
+            prev_tag=prev_tag,
+            new_tag=new_tag,  # <-- This will never be None if sent from frontend
+            comment=self.request.data.get('comment', '')
+        )
 
     @action(detail=False, methods=['get'])
     def pending_samples(self, request):
-        """Get all ECG samples that haven't been validated by any teacher."""
-        # Debug: Log total number of samples
-        total_samples = EcgSamples.objects.count()
-        logger.info(f"Total samples in database: {total_samples}")
-
-        # Get all samples that have been validated by any teacher
-        validated_samples = EcgSampleValidation.objects.values_list('sample_id', flat=True).distinct()
-        logger.info(f"Number of validated samples: {validated_samples.count()}")
-        
+        """Get all ECG samples that haven't been validated."""
         # Get all samples that haven't been validated
-        pending_samples = EcgSamples.objects.exclude(sample_id__in=validated_samples)
-        logger.info(f"Number of pending samples: {pending_samples.count()}")
-        
-        # Debug: Log a few sample IDs to verify
-        if pending_samples.exists():
-            sample_ids = list(pending_samples.values_list('sample_id', flat=True)[:5])
-            logger.info(f"First 5 pending sample IDs: {sample_ids}")
+        pending_samples = EcgSampleValidation.objects.filter(have_been_validated=False)
         
         response_data = {
             'count': pending_samples.count(),
             'samples': [
                 {
-                    'id': sample.sample_id, 
-                    'path': sample.sample_path, 
-                    'label_id': sample.doc_labels.first().label_id.label_id,
-                    'label_desc': sample.doc_labels.first().label_id.label_desc
-                } 
-                for sample in pending_samples
+                    'id': validation.id,  # Use validation's own ID
+                    'sample_id': validation.sample.sample_id,
+                    'path': validation.sample.sample_path,
+                    'prev_tag': {
+                        'label_id': validation.prev_tag.label_id,
+                        'label_desc': validation.prev_tag.label_desc
+                    } if validation.prev_tag else None,
+                    'new_tag': {
+                        'label_id': validation.new_tag.label_id,
+                        'label_desc': validation.new_tag.label_desc
+                    } if validation.new_tag else None
+                }
+                for validation in pending_samples
             ]
         }
-        logger.info(f"Response data: {response_data}")
         
         return Response(response_data)
     
     @action(detail=False, methods=['get'])
     def validated_samples(self, request):
-        """Get all ECG samples that have been validated by any teacher."""
-        # validated_samples = EcgSampleValidation.objects.all()
-        user = self.request.user
-        if not (user.is_staff or (hasattr(user, 'profile') and user.profile.role == 'teacher')):
-            return Response({'error': 'You are not authorized to view this page'}, status=status.HTTP_403_FORBIDDEN)
-        validated_samples = EcgSampleValidation.objects.all().order_by('-validated_at')
+        """Get all ECG samples that have been validated."""
+        validated_samples = EcgSampleValidation.objects.filter(have_been_validated=True)
+        logger.info(f'Found {validated_samples.count()} validated samples')
+        
         response_data = {
             'count': validated_samples.count(),
             'samples': [
-                    {
-                        'validation_id': validation.id,
-                        'sample_id': validation.sample.sample_id,
-                        'sample_path': validation.sample.sample_path,
-                        'curr_label': {
-                            'label_id': validation.curr_tag.label_id,
-                            'label_desc': validation.curr_tag.label_desc,
-                        },
-                        'new_label': {
-                            'label_id': validation.new_tag.label_id,
-                            'label_desc': validation.new_tag.label_desc,
-                        } 
-                        if validation.new_tag else validation.curr_tag,
-                        'comments': validation.comments,
-                        'teacher': {
-                            'teacher_id': validation.teacher.id,
-                            'first_name': validation.teacher.first_name,
-                            'last_name': validation.teacher.last_name,
-                            'email': validation.teacher.email,
-                            'username': validation.teacher.username,
-                        },
-                        'is_valid': validation.is_valid,
-                        'is_validated': True,
-                        'validated_at': validation.validated_at,
-                        'history': [
-                            {
-                                'changed_at': hist.history_date,
-                                'changed_by': hist.history_user.username if hist.history_user else None,
-                                'is_valid': hist.is_valid,
-                                'comments': hist.comments,
-                                'curr_tag_id': hist.curr_tag_id,
-                                'new_tag_id': hist.new_tag_id,
-                                'curr_tag_desc': hist.curr_tag.label_desc if hist.curr_tag else None,
-                                'new_tag_desc': hist.new_tag.label_desc if hist.new_tag else None,
-                            }
-                            for hist in validation.history.all().order_by('-history_date')
-                        ]
-                    }
-                    for validation in validated_samples
-                ]
-            }
+                {
+                    'id': validation.id,  # Use validation's own ID
+                    'sample_id': validation.sample.sample_id,
+                    'path': validation.sample.sample_path,
+                    'prev_tag': {
+                        'label_id': validation.prev_tag.label_id,
+                        'label_desc': validation.prev_tag.label_desc
+                    } if validation.prev_tag else None,
+                    'new_tag': {
+                        'label_id': validation.new_tag.label_id,
+                        'label_desc': validation.new_tag.label_desc
+                    } if validation.new_tag else None,
+                    'history': [
+                        {
+                            'validated_by': hist.validated_by.username,
+                            'prev_tag': {
+                                'label_id': hist.prev_tag.label_id,
+                                'label_desc': hist.prev_tag.label_desc
+                            } if hist.prev_tag else None,
+                            'new_tag': {
+                                'label_id': hist.new_tag.label_id,
+                                'label_desc': hist.new_tag.label_desc
+                            } if hist.new_tag else None,
+                            'comment': hist.comment,
+                            'created_at': hist.created_at
+                        }
+                        for hist in validation.history.all().order_by('-created_at')
+                    ]
+                }
+                for validation in validated_samples
+            ]
+        }
+        logger.info(f'Returning response with {len(response_data["samples"])} samples')
         return Response(response_data)
-        
-        
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['patch'])
     def validate(self, request, pk=None):
-        """Validate or invalidate an ECG sample."""
+        """Validate an ECG sample."""
         validation = self.get_object()
-        is_valid = request.data.get('is_valid')
-        new_tag = request.data.get('new_tag')
-        comments = request.data.get('comments', '')
-
-        if is_valid is None:
+        prev_tag = request.data.get('prev_tag_id')
+        new_tag = request.data.get('new_tag_id')
+        comment = request.data.get('comment', '')
+        if not prev_tag or not new_tag:
+            logger.error(f'Invalid validation request: prev_tag={prev_tag}, new_tag={new_tag}')
             return Response(
-                {'error': 'is_valid field is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if new_tag is None:
-            return Response(
-                {'error': 'new_tag field is required'}, 
+                {'error': 'prev_tag and new_tag fields are required got prev_tag={prev_tag}, new_tag={new_tag}'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        validation.is_valid = is_valid
-        validation.comments = comments
-        validation.new_tag = new_tag
+        validation.prev_tag_id = prev_tag
+        validation.new_tag_id = new_tag
+        validation.have_been_validated = True
         validation.save()
 
+        # Create validation history entry
+        ValidationHistory.objects.create(
+            validation=validation,
+            validated_by=request.user,
+            sample=validation.sample,
+            prev_tag_id=prev_tag,
+            new_tag_id=new_tag,
+            comment=comment
+        )
+
+        logger.info(f'Sample {validation.sample.sample_id} validated by {request.user.username}')
         return Response(self.get_serializer(validation).data) 

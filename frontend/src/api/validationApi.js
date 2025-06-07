@@ -9,8 +9,6 @@ export const fetchSamples = async () => {
   }
 };
 
-
-  // Get all validations for the current teacher
   export const fetchValidations = async () => {
     try{
       const response = await axiosInstance.get('/validations/validated_samples/');
@@ -51,44 +49,26 @@ export const fetchSamples = async () => {
       throw error;
     }
   };
-  
-
-  // Create a new validation
-  export const createValidation = async (data) => {
-    try {
-      console.log('Creating validation with data:', {
-        sampleId: data.sample,
-        isValid: data.is_valid,
-        hasComments: !!data.comments,
-        currentTagId: data.curr_tag_id,
-        newTagId: data.new_tag_id
+       
+  // Update an existing validation
+  export const updateValidation = async (id, data) => {
+    try{
+      console.log('Updating validation with data:', {
+        validationId: id,
+        data: data
       });
-
-      const response = await axiosInstance.post('/validations/', data);
-      
-      console.log('Validation created successfully:', {
+      // Only send tag IDs, not full objects
+      const payload = {
+        prev_tag_id: data.prev_tag?.label_id || data.prev_tag_id,
+        new_tag_id: data.new_tag?.label_id || data.new_tag_id,
+        comment: data.comment || ''
+      };
+      const response = await axiosInstance.patch(`/validations/${id}/validate/`, payload);
+      console.log('Validation updated successfully:', {
         validationId: response.data.id,
         sampleId: response.data.sample,
         timestamp: new Date().toISOString()
       });
-
-      return response.data;
-    } catch (error) {
-      console.error('Validation creation failed:', {
-        error: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        sampleId: data.sample,
-        timestamp: new Date().toISOString()
-      });
-      throw error;
-    }
-  };
-
-  // Update an existing validation
-  export const updateValidation = async (id, data) => {
-    try{
-      const response = await axiosInstance.patch(`/validations/${id}/`, data);
       return response.data;
     } catch (error) {
       console.error('Validation update failed:', {

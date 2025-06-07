@@ -45,6 +45,7 @@ const ValidationHistory = () => {
   const [isFetching, setIsFetching] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [labelsError, setLabelsError] = useState(null);
 
   const [openImage, setOpenImage] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState('');
@@ -68,6 +69,7 @@ const ValidationHistory = () => {
         setAllLabels(resp.data.labels);
       } catch (err) {
         console.error('Error fetching labels:', err);
+        setLabelsError('Failed to load labels. Some features may be limited.');
       }
     })();
   }, []);
@@ -76,10 +78,13 @@ const ValidationHistory = () => {
   useEffect(() => {
     (async () => {
       try {
+        console.log('Fetching validations...');
         const data = await fetchValidations();
+        console.log('Validations response:', data);
         setValidations(data.samples);
         setFilteredValidations(data.samples);
       } catch (err) {
+        console.error('Error fetching validations:', err);
         setError('Failed to load validations');
       } finally {
         setIsFetching(false);
@@ -87,15 +92,19 @@ const ValidationHistory = () => {
     })();
   }, []);
 
-  // ─── Filter into “all” / “mine” / “others” whenever user or validations changes ───
+  // ─── Filter into "all" / "mine" / "others" whenever user or validations changes ───
   useEffect(() => {
     if (filter === 'all') {
       setFilteredValidations(validations);
     } else if (filter === 'mine') {
-      setFilteredValidations(validations.filter(v => v.teacher?.username === user?.username));
+      setFilteredValidations(validations.filter(v => 
+        v.history.some(entry => entry.validated_by === user?.username)
+      ));
     } else {
-      // “others”
-      setFilteredValidations(validations.filter(v => v.teacher?.username !== user?.username));
+      // "others"
+      setFilteredValidations(validations.filter(v => 
+        !v.history.some(entry => entry.validated_by === user?.username)
+      ));
     }
   }, [filter, validations, user]);
 
@@ -105,7 +114,7 @@ const ValidationHistory = () => {
     setOpenImage(true);
   };
 
-  // ─── When “Edit” is clicked, prefill the form with the chosen validation record ───
+  // ─── When "Edit" is clicked, prefill the form with the chosen validation record ───
   const handleEditClick = (validation) => {
     setEditingValidation(validation);
     setEditForm({
@@ -117,7 +126,7 @@ const ValidationHistory = () => {
     setOpenEditDialog(true);
   };
 
-  // ─── When “Save Changes” is clicked, PATCH & update local state ────────────────
+  // ─── When "Save Changes" is clicked, PATCH & update local state ────────────────
   const handleEditSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -153,6 +162,18 @@ const ValidationHistory = () => {
     }
   };
 
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setEditingValidation(null);
+    setEditForm({ is_valid: true, comments: '', new_tag_id: '' });
+  };
+
+  const handleCloseHistoryDialog = () => {
+    setOpenHistoryDialog(false);
+    setHistoryEntries([]);
+    setHistoryParentId(null);
+  };
+
   // ─── Render a single row (either as a Card on mobile, or a TableRow on desktop) ──
   const renderValidationRow = (v) => {
     // ─── MOBILE CARD VERSION ──────────────────────────────────────────────────────
@@ -174,7 +195,7 @@ const ValidationHistory = () => {
             <Grid container spacing={2}>
               <Grid xs={4}>
                 <img
-                  src={getImageUrl(v.sample_path)}
+                  src={getImageUrl(v.path)}
                   alt={`ECG Sample ${v.sample_id}`}
                   style={{
                     width: '100%',
@@ -189,12 +210,12 @@ const ValidationHistory = () => {
               <Grid xs={8}>
                 <Stack spacing={1}>
                   <Typography variant="body2"><strong>Sample ID:</strong> {v.sample_id}</Typography>
-                  <Typography variant="body2"><strong>Validated by:</strong> {v.teacher?.username || 'N/A'}</Typography>
-                  <Typography variant="body2"><strong>Valid:</strong> {v.is_valid ? '✅' : '❌'}</Typography>
-                  <Typography variant="body2"><strong>Comments:</strong> {v.comments || '–'}</Typography>
-                  <Typography variant="body2"><strong>Date:</strong> {new Date(v.validated_at).toLocaleString()}</Typography>
-                  <Typography variant="body2"><strong>Prev tag:</strong> {v.curr_label?.label_desc || 'N/A'}</Typography>
-                  <Typography variant="body2"><strong>New tag:</strong> {v.new_label?.label_desc || 'N/A'}</Typography>
+                  <Typography variant="body2"><strong>Validated by:</strong> {v.history[0]?.validated_by || 'N/A'}</Typography> 
+                  <Typography variant="body2"><strong>Valid:</strong> {v.prev_tag?.label_id === v.new_tag?.label_id ? '✅' : '❌'}</Typography>
+                  <Typography variant="body2"><strong>Comments:</strong> {v.history[0]?.comment || '–'}</Typography>
+                  <Typography variant="body2"><strong>Date:</strong> {new Date(v.history[0]?.created_at).toLocaleString()}</Typography>
+                  <Typography variant="body2"><strong>Prev tag:</strong> {v.prev_tag?.label_desc || 'N/A'}</Typography>
+                  <Typography variant="body2"><strong>New tag:</strong> {v.new_tag?.label_desc || 'N/A'}</Typography>
                   <Box>
                     {/* Only teachers or staff can see the pencil */}
                     {(user?.profile?.role === 'teacher' || user?.is_staff) && (
@@ -216,7 +237,7 @@ const ValidationHistory = () => {
                       variant="outlined"
                       onClick={() => {
                         setHistoryEntries(v.history || []);
-                        setHistoryParentId(v.validation_id);
+                        setHistoryParentId(v);
                         setOpenHistoryDialog(true);
                       }}
                     >
@@ -247,10 +268,10 @@ const ValidationHistory = () => {
         
         >
           <img
-            src={getImageUrl(v.sample_path)}
+            src={getImageUrl(v.path)}
             alt={`ECG Sample ${v.sample_id}`}
             style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer', borderRadius: 4 }}
-            onClick={() => handleImageClick(v.sample_path)}
+            onClick={() => handleImageClick(v.path)}
           />
         </TableCell>
         <TableCell>
@@ -259,13 +280,13 @@ const ValidationHistory = () => {
           </TableCell>
         <TableCell>
           
-          {v.teacher?.username || 'N/A'}
+          {v.history[0]?.validated_by || 'N/A'}
           </TableCell>
-        <TableCell>{v.is_valid ? '✅' : '❌'}</TableCell>
-        <TableCell>{v.comments || '–'}</TableCell>
-        <TableCell>{new Date(v.validated_at).toLocaleString()}</TableCell>
-        <TableCell>{v.curr_label?.label_desc || 'N/A'}</TableCell>
-        <TableCell>{v.new_label?.label_desc || 'N/A'}</TableCell>
+        <TableCell>{v.prev_tag?.label_id === v.new_tag?.label_id ? '✅' : '❌'}</TableCell>
+        <TableCell>{v.history[0]?.comment || '–'}</TableCell>
+        <TableCell>{new Date(v.history[0]?.created_at).toLocaleString()}</TableCell>
+        <TableCell>{v.prev_tag?.label_desc || 'N/A'}</TableCell>
+        <TableCell>{v.new_tag?.label_desc || 'N/A'}</TableCell>
         <TableCell>
           <Stack direction="row" spacing={1}>
             {(user?.profile?.role === 'teacher' || user?.is_staff) && (
@@ -278,7 +299,7 @@ const ValidationHistory = () => {
               variant="outlined"
               onClick={() => {
                 setHistoryEntries(v.history || []);
-                setHistoryParentId(v.validation_id);
+                setHistoryParentId(v);
                 setOpenHistoryDialog(true);
               }}
             >
@@ -300,10 +321,11 @@ const ValidationHistory = () => {
   }
 
   // ─── SHOW ERROR MESSAGE ────────────────────────────────────────────────────────
-  if (error) {
+  if (error || labelsError) {
     return (
       <Box mt={2}>
-        <Alert severity="error">{error}</Alert>
+        {error && <Alert severity="error">{error}</Alert>}
+        {labelsError && <Alert severity="warning">{labelsError}</Alert>}
       </Box>
     );
   }
@@ -313,7 +335,7 @@ const ValidationHistory = () => {
     <Box sx={{ p: { xs: 1, sm: 2 } }}>
       <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
         <Grid xs={12} sm={6}>
-          <Typography variant="h6">Past Validations</Typography>
+          <Typography variant="h6">Validated Samples</Typography>
         </Grid>
         <Grid xs={12} sm={6}>
           <FormControl fullWidth 
@@ -393,10 +415,10 @@ const ValidationHistory = () => {
                 
               }}
               >{value === 'all'
-                ? 'All Validations'
+                ? 'All Changes'
                 : value === 'mine'
-                ? 'My Validations'
-                : "Others' Validations"}
+                ? 'My Changes'
+                : "Others' Changes"}
             </MenuItem>
             ))}
             </Select>
@@ -480,12 +502,21 @@ const ValidationHistory = () => {
       {/* ─── Edit Validation Dialog ────────────────────────────────────────────────── */}
       <Dialog
         open={openEditDialog}
-        onClose={() => setOpenEditDialog(false)}
+        onClose={handleCloseEditDialog}
         maxWidth="sm"
         fullWidth
         fullScreen={isMobile}
       >
-        <DialogTitle>Edit Validation</DialogTitle>
+        <DialogTitle>
+          Edit Validation
+          <IconButton
+            size="small"
+            onClick={handleCloseEditDialog}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 2 }}>
             <FormControl fullWidth>
@@ -526,7 +557,7 @@ const ValidationHistory = () => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenEditDialog(false)} disabled={isSubmitting}>
+          <Button onClick={handleCloseEditDialog} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button
@@ -534,8 +565,9 @@ const ValidationHistory = () => {
             variant="contained"
             color="primary"
             disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={18} /> : null}
           >
-            {isSubmitting ? <CircularProgress size={18} /> : 'Save Changes'}
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -543,16 +575,16 @@ const ValidationHistory = () => {
       {/* ─── History Dialog ────────────────────────────────────────────────────────── */}
       <Dialog
         open={openHistoryDialog}
-        onClose={() => setOpenHistoryDialog(false)}
+        onClose={handleCloseHistoryDialog}
         maxWidth="sm"
         fullWidth
         fullScreen={isMobile}
       >
         <DialogTitle>
-          History for Validation #{historyParentId}
+          History for Sample #{historyParentId?.sample_id}
           <IconButton
             size="small"
-            onClick={() => setOpenHistoryDialog(false)}
+            onClick={handleCloseHistoryDialog}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
             <CloseIcon />
@@ -568,22 +600,22 @@ const ValidationHistory = () => {
                   <CardContent>
                     <Stack spacing={1}>
                       <Typography variant="body2">
-                        <strong>Changed at:</strong> {new Date(entry.changed_at).toLocaleString()}
+                        <strong>Validated at:</strong> {new Date(entry.created_at).toLocaleString()}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Changed by:</strong> {entry.changed_by || '–'}
+                        <strong>Validated by:</strong> {entry.validated_by || '–'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Valid?</strong> {entry.is_valid ? '✅ Valid' : '❌ Invalid'}
+                        <strong>Valid:</strong> {entry.prev_tag?.label_id === entry.new_tag?.label_id ? '✅ Valid' : '❌ Invalid'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Comments:</strong> {entry.comments || '–'}
+                        <strong>Comments:</strong> {entry.comment || '–'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Prev Tag:</strong> {entry.curr_tag_desc || '–'}
+                        <strong>Previous Tag:</strong> {entry.prev_tag?.label_desc || '–'}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>New Tag:</strong> {entry.new_tag_desc || '–'}
+                        <strong>New Tag:</strong> {entry.new_tag?.label_desc || '–'}
                       </Typography>
                     </Stack>
                   </CardContent>
@@ -593,7 +625,7 @@ const ValidationHistory = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenHistoryDialog(false)}>Close</Button>
+          <Button onClick={handleCloseHistoryDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

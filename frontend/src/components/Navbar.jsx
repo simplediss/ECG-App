@@ -105,7 +105,7 @@ const Navbar = () => {
               </li>
             )}
             
-            {user?.profile?.role === 'teacher' || user?.is_staff && (
+            {(user?.profile?.role === 'teacher' || user?.is_staff) && (
               <li className="nav-item">
                 <Link 
                   to="/validation" 

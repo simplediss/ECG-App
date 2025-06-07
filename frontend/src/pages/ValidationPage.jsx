@@ -10,8 +10,8 @@ const ValidationPage = () => {
   const [tab, setTab] = useState(0);
   const [activeTab, setActiveTab] = useState('make-validations');
 
-  // Redirect if not a teacher
-  if (!user?.profile?.role === 'teacher' && !user?.is_staff || !user?.profile?.role === 'admin') {
+  // Redirect if not a teacher or admin
+  if (!(user?.is_staff || user?.profile?.role === 'teacher')) {
     return <Navigate to="/" replace />;
   }
 
@@ -41,7 +41,7 @@ const ValidationPage = () => {
               }
             }}
           />
-          <Tab label="View Past Validations"
+          <Tab label="Validated Samples"
             sx={{
               color: 'var(--text-primary)',
               '&.Mui-selected': {

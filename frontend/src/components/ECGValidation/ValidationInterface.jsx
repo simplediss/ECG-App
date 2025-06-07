@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchPendingSamples as fetchPendingSamplesAPI, createValidation } from '../../api/validationApi';
+import { fetchPendingSamples as fetchPendingSamplesAPI, updateValidation } from '../../api/validationApi';
 import { getImageUrl } from '../../api/axiosInstance';
 import ListItemButton from '@mui/material/ListItemButton';
 import axiosInstance from '../../api/axiosInstance';
@@ -23,6 +23,7 @@ import {
   Popover,
   List,
   ListItem,
+  Paper,
   ListItemText,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -91,6 +92,22 @@ const ValidationInterface = () => {
     loadLabels();
   }, []);
 
+  useEffect(() => {
+    if (currentSample) {
+      console.log('Current sample:', currentSample);
+    }
+  }, [currentSample]);
+
+  // Clear success message after 1 second
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+
   const handleValidation = async (isValid = true, newTag = null) => {
     if (!currentSample) return;
     if (!isValid && !newTag) {
@@ -99,30 +116,14 @@ const ValidationInterface = () => {
     }
 
     try {
-      console.log('Starting validation submission:', {
-        sampleId: currentSample.id,
-        isValid,
-        currentTag: currentSample.label_id,
-        newTag: isValid ? currentSample.label_id : newTag,
-        comments: comments
-      });
-
       setLoading(true);
       setError(null);
       setSuccess(false);
 
-      await createValidation({
-        sample: currentSample.id,
-        is_valid: isValid,
-        comments: comments,
-        curr_tag_id: currentSample.label_id,
-        new_tag_id: isValid ? currentSample.label_id : newTag
-      });
-
-      console.log('Validation submitted successfully:', {
-        sampleId: currentSample.id,
-        isValid,
-        timestamp: new Date().toISOString()
+      await updateValidation(currentSample.id, {
+        prev_tag_id: currentSample.prev_tag?.label_id,
+        new_tag_id: isValid ? currentSample.prev_tag?.label_id : newTag,
+        comment: comments
       });
 
       setSuccess(true);
@@ -206,30 +207,45 @@ const ValidationInterface = () => {
         transition: 'all 0.3s ease',
       }}>
         <CardContent>
-          <Grid container spacing={3}>
+          <Grid container direction="column" spacing={3} justifyContent="center"  >
             <Grid xs={12}>
+            
+                <Typography color="primary" sx={{ color: darkMode ? 'var(--text-secondary)' : undefined }} align="center">
+                  {totalPending} samples pending
+                </Typography>
+            
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Typography variant="h5" sx={{ color: darkMode ? 'var(--text-primary)' : undefined }}>
                   Sample {currentSample.id}
                 </Typography>
                 <Chip 
-                  label={`${totalPending} samples pending`}
-                  color="primary"
-                  variant="outlined"
-                />
+                    label={currentSample.prev_tag?.label_desc || "No label"}
+                    color="primary"
+                    variant="outlined"
+                    sx={{
+                      borderWidth: '2px',
+                      transition: 'all 0.2s ease-in-out',
+                      '& .MuiChip-label': {
+                        px: 1.5,
+                      }
+                    }}
+                  />
               </Box>
               {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-              {success && <Alert severity="success" sx={{ mb: 2 }}>Validation submitted successfully</Alert>}
+              <Grid item xs={12}>
+                {success && <Alert severity="success" sx={{ mb: 2 }}>Validation submitted successfully</Alert>}
+              </Grid>
             </Grid>
 
-            <Grid  xs={12}>
+            <Grid container direction="row" xs={12}>
               <Box
                 component="img"
                 src={getEcgImageUrl(currentSample)}
                 alt={`ECG Sample ${currentSample.id}`}
                 sx={{
                   width: '100%',
-                  maxHeight: '400px',
+                  height: 'auto',
+                  maxHeight: { xs: '300px', sm: '400px', md: '500px' },
                   objectFit: 'contain',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
@@ -243,36 +259,15 @@ const ValidationInterface = () => {
               />
             </Grid>
 
-            <Grid  xs={12}>
-              
-                <Box mb={2}>
-                  <Typography variant="subtitle1">Current label</Typography>
-                  <Box display="flex" gap={1} flexWrap="wrap">
-                    <Chip 
-                        
-                        label={currentSample.label_desc}
-                        color="primary"
-                        variant="outlined"
-                        sx={{
-                          borderWidth: '2px',
-                          transition: 'all 0.2s ease-in-out',
-                          '& .MuiChip-label': {
-                            px: 1.5,
-                          }
-                        }}
-                      />
-                    
-                  </Box>
-                </Box>
-              
-            </Grid>
+            
 
-            <Grid  xs={12}>
+            <Grid container direction="row" xs={12} justifyContent="center">
               <Box 
                 display="flex" 
                 flexDirection="column"
                 alignItems="center"
                 gap={2}
+                width="100%"
               >
                 <ButtonGroup size="small">
                   <Button
@@ -338,16 +333,39 @@ const ValidationInterface = () => {
               </List>
             </Popover>
 
-            <Grid  xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 multiline
                 rows={4}
-                label="Comments"
+                label="Comment (optional)"
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
                 placeholder="Add any comments about the sample..."
                 size="small"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    color: 'var(--text-primary)',
+                    '& fieldset': {
+                      borderColor: 'var(--border-color)',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: 'var(--primary)',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'var(--primary)',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: 'var(--text-secondary)',
+                    '&.Mui-focused': {
+                      color: 'var(--primary)',
+                    },
+                  },
+                  '& .MuiInputBase-input': {
+                    color: 'var(--text-primary)',
+                  },
+                }}
               />
             </Grid>
 
