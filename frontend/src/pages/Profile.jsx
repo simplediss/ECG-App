@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { getStudentDetails, updateUserProfile } from '../api/userApi';
 import { checkUserStatus } from '../api/authApi';
 import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
+import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
+import Achievements from '../components/Achievements';
+import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -24,6 +27,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -82,131 +86,221 @@ const Profile = () => {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 6 }}>
-      <Paper elevation={3} sx={{ p: 4, background: 'var(--bg-white)', color: 'var(--text-primary)' }}>
-        <Typography variant="h4" align="center" gutterBottom sx={{ color: 'var(--text-primary)' }}>
-          Profile
-        </Typography>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3 } }}>
+      <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', mb: 3 }}>
+        <Card sx={{
+          backgroundColor: 'var(--bg-white)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--box-shadow-sm)',
+          p: { xs: 2, sm: 3 },
+          transition: 'all 0.3s ease',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}>
+          <Typography variant="h5" gutterBottom sx={{ color: 'var(--text-primary)' }}>
+            Profile Info
+          </Typography>
 
-        <Stack spacing={2}>
-          {error && <Alert severity="error">{error}</Alert>}
-          {success && <Alert severity="success">{success}</Alert>}
-        </Stack>
+          <Stack spacing={2}>
+            {error && <Alert severity="error">{error}</Alert>}
+            {success && <Alert severity="success">{success}</Alert>}
+          </Stack>
 
-        <Box sx={{ mt: 3 }}>
-          {!isEditing ? (
-            <Stack spacing={2}>
-              <Box>
-                <Typography variant="subtitle2">Name:</Typography>
-                <Typography variant="body1">{profile.first_name} {profile.last_name}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2">Email:</Typography>
-                <Typography variant="body1">{profile.email}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2">Date of Birth:</Typography>
-                <Typography variant="body1">{profile.date_of_birth ? profile.date_of_birth : 'Not set'}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="subtitle2">Gender:</Typography>
-                <Typography variant="body1">{profile.gender}</Typography>
-              </Box>
-              <Button
-                variant="contained"
-                sx={{ mt: 2, alignSelf: 'flex-start', background: 'var(--text-primary)', color: 'var(--bg-main)', '&:hover': { background: '#357abd' } }}
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Profile
-              </Button>
-            </Stack>
-          ) : (
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="First Name"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
-                sx={{ input: { color: 'var(--text-primary)', background: 'var(--bg-main)' } }}
-              />
-              <TextField
-                label="Last Name"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleInputChange}
-                required
-                fullWidth
-                InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
-                sx={{ input: { color: 'var(--text-primary)', background: 'var(--bg-main)' } }}
-              />
-              <TextField
-                label="Email"
-                name="email"
-                type="email"
-                value={formData.email}
-                InputProps={{ readOnly: true }}
-                required
-                fullWidth
-                InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
-                sx={{ input: { color: 'var(--text-primary)', background: 'var(--bg-main)' } }}
-              />
-              <TextField
-                label="Date of Birth"
-                name="date_of_birth"
-                type="date"
-                value={formData.date_of_birth}
-                onChange={handleInputChange}
-                fullWidth
-                InputLabelProps={{ shrink: true, style: { color: 'var(--text-primary)' } }}
-                sx={{ input: { color: 'var(--text-primary)', background: 'var(--bg-main)' } }}
-                inputProps={{ max: '2015-12-31' }}
-              />
-              <TextField
-                label="Gender"
-                name="gender"
-                select
-                SelectProps={{ native: true }}
-                value={formData.gender}
-                onChange={handleInputChange}
-                fullWidth
-                InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
-                sx={{ select: { color: 'var(--text-primary)', background: 'var(--bg-main)' } }}
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-                <option value="Prefer not to say">Prefer not to say</option>
-              </TextField>
-              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                <Button type="submit" variant="contained" sx={{ background: 'var(--text-primary)', color: 'var(--bg-main)', '&:hover': { background: '#218838' } }}>
-                  Save Changes
-                </Button>
+          <Box sx={{ mt: 3 }}>
+            {!isEditing ? (
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: 'var(--text-secondary)' }}>Name:</Typography>
+                  <Typography variant="body1" sx={{ color: 'var(--text-primary)' }}>
+                    {profile.first_name} {profile.last_name}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: 'var(--text-secondary)' }}>Email:</Typography>
+                  <Typography variant="body1" sx={{ color: 'var(--text-primary)' }}>{profile.email}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: 'var(--text-secondary)' }}>Date of Birth:</Typography>
+                  <Typography variant="body1" sx={{ color: 'var(--text-primary)' }}>
+                    {profile.date_of_birth ? profile.date_of_birth : 'Not set'}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: 'var(--text-secondary)' }}>Gender:</Typography>
+                  <Typography variant="body1" sx={{ color: 'var(--text-primary)' }}>{profile.gender}</Typography>
+                </Box>
                 <Button
-                  type="button"
-                  variant="outlined"
-                  sx={{ color: 'var(--text-primary)', borderColor: 'var(--text-primary)' }}
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFormData({
-                      first_name: profile.first_name || '',
-                      last_name: profile.last_name || '',
-                      email: profile.email || '',
-                      gender: profile.gender || '',
-                      date_of_birth: profile.date_of_birth || ''
-                    });
+                  variant="contained"
+                  sx={{ 
+                    mt: 2, 
+                    alignSelf: 'flex-start', 
+                    background: 'var(--primary)',
+                    color: 'var(--bg-main)',
+                    '&:hover': { 
+                      background: 'var(--primary-dark)',
+                    }
+                  }}
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit Profile
+                </Button>
+              </Stack>
+            ) : (
+              <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField
+                  label="First Name"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  required
+                  fullWidth
+                  InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      color: 'var(--text-primary)',
+                      '& fieldset': {
+                        borderColor: 'var(--border-color)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'var(--primary)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'var(--text-secondary)',
+                    },
+                  }}
+                />
+                <TextField
+                  label="Last Name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  required
+                  fullWidth
+                  InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      color: 'var(--text-primary)',
+                      '& fieldset': {
+                        borderColor: 'var(--border-color)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'var(--primary)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'var(--text-secondary)',
+                    },
+                  }}
+                />
+                
+                <TextField
+                  label="Date of Birth"
+                  name="date_of_birth"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={handleInputChange}
+                  fullWidth
+                  InputLabelProps={{ shrink: true, style: { color: 'var(--text-primary)' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      color: 'var(--text-primary)',
+                      '& fieldset': {
+                        borderColor: 'var(--border-color)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'var(--primary)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'var(--text-secondary)',
+                    },
+                  }}
+                  inputProps={{ max: '2015-12-31' }}
+                />
+                <TextField
+                  label="Gender"
+                  placeholder=""
+                  name="gender"
+                  select
+                  SelectProps={{ native: true }}
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  fullWidth
+                  InputLabelProps={{ style: { color: 'var(--text-primary)' } }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      color: 'var(--text-primary)',
+                      '& fieldset': {
+                        borderColor: 'var(--border-color)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'var(--primary)',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'var(--text-secondary)',
+                    },
                   }}
                 >
-                  Cancel
-                </Button>
+                  <option value=""></option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </TextField>
+                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    sx={{ 
+                      background: 'var(--primary)',
+                      color: 'var(--bg-main)',
+                      '&:hover': { 
+                        background: 'var(--primary-dark)',
+                      }
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    sx={{ 
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--border-color)',
+                      '&:hover': {
+                        borderColor: 'var(--primary)',
+                        color: 'var(--primary)',
+                      }
+                    }}
+                    onClick={() => {
+                      setIsEditing(false);
+                      setFormData({
+                        first_name: profile.first_name || '',
+                        last_name: profile.last_name || '',
+                        email: profile.email || '',
+                        gender: profile.gender || '',
+                        date_of_birth: profile.date_of_birth || ''
+                      });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
+          </Box>
+        </Card>
+      </Box>
+
+      {/* Achievements Section - full width, only for students */}
+      {user?.profile?.role === 'student' && (
+        <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', mb: 3 }}>
+          <Achievements />
         </Box>
-      </Paper>
+      )}
     </Container>
   );
 };
