@@ -13,9 +13,8 @@ const UserManagement = () => {
     const [sortBy, setSortBy] = useState('username');
     const [filterRole, setFilterRole] = useState('all');
     
-    // Form state
+    // Form state for editing
     const [formData, setFormData] = useState({
-        username: '',
         email: '',
         first_name: '',
         last_name: '',
@@ -51,29 +50,6 @@ const UserManagement = () => {
         } catch (error) {
             console.error('Error fetching users:', error.response?.data || error.message);
             setError('Failed to load users. Please try again later.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCreateUser = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            const userData = { ...formData };
-            
-            // Handle date_of_birth: if empty, set to null
-            if (userData.date_of_birth === '') {
-                userData.date_of_birth = null;
-            }
-            
-            await userApi.createUser(userData);
-            setSuccess('User created successfully!');
-            resetForm();
-            loadProfiles();
-        } catch (error) {
-            console.error('Error creating user:', error.response?.data || error.message);
-            setError('Failed to create user. Please check the form and try again.');
         } finally {
             setLoading(false);
         }
@@ -149,7 +125,6 @@ const UserManagement = () => {
 
     const resetForm = () => {
         setFormData({
-            username: '',
             email: '',
             first_name: '',
             last_name: '',
@@ -172,7 +147,6 @@ const UserManagement = () => {
         }
         
         setFormData({
-            username: profile.user.username,
             email: profile.user.email,
             first_name: profile.user.first_name || '',
             last_name: profile.user.last_name || '',
@@ -194,6 +168,13 @@ const UserManagement = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleEmailClick = (e) => {
+        if (!window.confirm('Are you sure you want to change the email address? This will affect the user\'s login credentials.')) {
+            e.preventDefault();
+            e.target.blur();
+        }
     };
 
     // Filter and sort users
@@ -242,188 +223,163 @@ const UserManagement = () => {
             {success && <div className="success-message">{success}</div>}
             
             <div className="user-management-container">
-                {/* User Form Section */}
-                <section className="user-form-section">
-                    <h2>{editingUser ? 'Edit User' : 'Create New User'}</h2>
-                    <form onSubmit={editingUser ? handleUpdateUser : handleCreateUser}>
-                        <div className="form-group">
-                            <label htmlFor="username">Username</label>
-                            <input
-                                type="text"
-                                id="username"
-                                name="username"
-                                value={formData.username}
-                                onChange={handleChange}
-                                required
-                                disabled={editingUser}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="email">Email</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="first_name">First Name</label>
-                                <input
-                                    type="text"
-                                    id="first_name"
-                                    name="first_name"
-                                    value={formData.first_name}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="last_name">Last Name</label>
-                                <input
-                                    type="text"
-                                    id="last_name"
-                                    name="last_name"
-                                    value={formData.last_name}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="password">{editingUser ? 'New Password (leave blank to keep current)' : 'Password'}</label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required={!editingUser}
-                            />
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="role">Role</label>
-                                <select
-                                    id="role"
-                                    name="role"
-                                    value={formData.role}
-                                    onChange={handleChange}
-                                >
-                                    <option value="student">Student</option>
-                                    <option value="teacher">Teacher</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="gender">Gender</label>
-                                <select
-                                    id="gender"
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="date_of_birth">Date of Birth</label>
-                            <input
-                                type="date"
-                                id="date_of_birth"
-                                name="date_of_birth"
-                                value={formData.date_of_birth}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div className="form-actions">
-                            {editingUser ? (
-                                <>
-                                    <button type="submit" className="btn btn-primary">Update User</button>
-                                    <button type="button" className="btn btn-secondary" onClick={cancelEdit}>Cancel</button>
-                                </>
-                            ) : (
-                                <button type="submit" className="btn btn-primary">Create User</button>
-                            )}
-                        </div>
-                    </form>
-                </section>
-                
-                {/* Users List Section */}
-                <section className="users-list-section">
-                    <h2>User List</h2>
-                    <div className="filters">
-                        <div className="search-box">
-                            <input
-                                type="text"
-                                placeholder="Search users..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        <div className="filter-controls">
-                            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                                <option value="username">Sort by Username</option>
-                                <option value="email">Sort by Email</option>
-                                <option value="name">Sort by Name</option>
-                                <option value="role">Sort by Role</option>
-                            </select>
-                            <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
-                                <option value="all">All Roles</option>
-                                <option value="student">Students Only</option>
-                                <option value="teacher">Teachers Only</option>
-                            </select>
-                        </div>
+                {/* Search and Filter Controls */}
+                <div className="user-controls">
+                    <div className="search-box">
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                    
-                    <div className="users-table-container">
-                        <table className="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Name</th>
-                                    <th>Role</th>
-                                    <th>Gender</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredUsers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="6" className="no-results">No users found</td>
-                                    </tr>
-                                ) : (
-                                    filteredUsers.map(profile => (
-                                        <tr key={profile.id}>
-                                            <td>{profile.user.username}</td>
-                                            <td>{profile.user.email}</td>
-                                            <td>{`${profile.user.first_name || ''} ${profile.user.last_name || ''}`}</td>
-                                            <td>{profile.role}</td>
-                                            <td>{profile.gender || 'Not specified'}</td>
-                                            <td className="action-buttons">
-                                                <button 
-                                                    className="btn btn-edit" 
-                                                    onClick={() => editUser(profile)}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button 
-                                                    className="btn btn-delete" 
-                                                    onClick={() => handleDeleteUser(profile.id)}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                    <div className="filter-controls">
+                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                            <option value="username">Sort by Username</option>
+                            <option value="email">Sort by Email</option>
+                            <option value="name">Sort by Name</option>
+                            <option value="role">Sort by Role</option>
+                        </select>
+                        <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
+                            <option value="all">All Roles</option>
+                            <option value="student">Students Only</option>
+                            <option value="teacher">Teachers Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Edit User Form */}
+                {editingUser && (
+                    <section className="edit-user-section">
+                        <h2>Edit User</h2>
+                        <form onSubmit={handleUpdateUser}>
+                            <div className="form-group">
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    onClick={handleEmailClick}
+                                    required
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="first_name">First Name</label>
+                                    <input
+                                        type="text"
+                                        id="first_name"
+                                        name="first_name"
+                                        value={formData.first_name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="last_name">Last Name</label>
+                                    <input
+                                        type="text"
+                                        id="last_name"
+                                        name="last_name"
+                                        value={formData.last_name}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="password">New Password (leave blank to keep current)</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="role">Role</label>
+                                    <select
+                                        id="role"
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="student">Student</option>
+                                        <option value="teacher">Teacher</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="gender">Gender</label>
+                                    <select
+                                        id="gender"
+                                        name="gender"
+                                        value={formData.gender}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="date_of_birth">Date of Birth</label>
+                                <input
+                                    type="date"
+                                    id="date_of_birth"
+                                    name="date_of_birth"
+                                    value={formData.date_of_birth}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="form-actions">
+                                <button type="submit" className="submit-button">Update User</button>
+                                <button type="button" className="cancel-button" onClick={cancelEdit}>Cancel</button>
+                            </div>
+                        </form>
+                    </section>
+                )}
+
+                {/* Users List */}
+                <section className="users-list-section">
+                    <h2>Users List</h2>
+                    <div className="users-grid">
+                        {filteredUsers.map(profile => (
+                            <div key={profile.id} className="user-card">
+                                <div className="user-header">
+                                    <h3>{profile.user.username}</h3>
+                                    <span className={`role-badge ${profile.role.toLowerCase()}`}>
+                                        {profile.role}
+                                    </span>
+                                </div>
+                                <div className="user-info">
+                                    <p><strong>Name:</strong> {profile.user.first_name} {profile.user.last_name}</p>
+                                    <p><strong>Email:</strong> {profile.user.email}</p>
+                                    <p><strong>Gender:</strong> {profile.gender || 'Not specified'}</p>
+                                    <p><strong>Date of Birth:</strong> {profile.date_of_birth ? new Date(profile.date_of_birth).toLocaleDateString() : 'Not specified'}</p>
+                                </div>
+                                <div className="user-actions">
+                                    <button 
+                                        className="edit-button"
+                                        onClick={() => editUser(profile)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        className="delete-button"
+                                        onClick={() => handleDeleteUser(profile.id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
             </div>

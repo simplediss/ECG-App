@@ -16,6 +16,9 @@ import StudentOverview from './pages/StudentOverview';
 import StudentQuizHistory from './pages/StudentQuizHistory';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ValidationPage from './pages/ValidationPage';
+import Profile from './pages/Profile';
+import EcgRoadPage from './pages/EcgRoadPage';
 import './styles/global/App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -84,6 +87,14 @@ const AppContent = () => {
           }
         />
         <Route
+          path="/validation"
+          element={
+            <TeacherOrAdminRoute>
+              <ValidationPage />
+            </TeacherOrAdminRoute>
+          }
+        />
+        <Route
           path="/quiz"
           element={
             <PrivateRoute>
@@ -127,7 +138,7 @@ const AppContent = () => {
           path="/profile"
           element={
             <PrivateRoute>
-              <div>Profile Page (Coming Soon)</div>
+              <Profile />
             </PrivateRoute>
           }
         />
@@ -149,6 +160,14 @@ const AppContent = () => {
         />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/ecg-road"
+          element={
+            <PrivateRoute>
+              <EcgRoadPage />
+            </PrivateRoute>
+          }
+        />
         <Route path="/" element={<Navigate to="/home" />} />
       </Routes>
     </div>

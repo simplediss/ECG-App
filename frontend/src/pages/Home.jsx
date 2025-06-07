@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/pages/Home.css';
 import UserStatistics from '../components/statistics/UserStatistics';
-import { Container, Box } from '@mui/material';
+import StreakCounter from '../components/StreakCounter';
+import { Container, Box, Grid } from '@mui/material';
 
 const Home = () => {
   const { user } = useAuth();
@@ -28,11 +29,18 @@ const Home = () => {
       <div className="page-container">
         <div className="home-hero">
           <div className="hero-content">
-            <h1>
-              <span className="welcome-text">{getWelcomeMessage()},</span>
-              <span className="username">{user.first_name || user.username}</span>
-            </h1>
-            <p className="hero-subtitle">Ready to improve your ECG interpretation skills?</p>
+            <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', width: '100%', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+              <Box>
+                <h1>
+                  <span className="welcome-text">{getWelcomeMessage()},</span>
+                  <span className="username">{user.first_name || user.username}</span>
+                </h1>
+                <p className="hero-subtitle">Ready to improve your ECG interpretation skills?</p>
+              </Box>
+              {user.profile?.role === 'student' && (
+                <StreakCounter />
+              )}
+            </Box>
           </div>
         </div>
 

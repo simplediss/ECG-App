@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from simple_history.models import HistoricalRecords
 
 # ---------------------------------------- [ECG Data Models] ----------------------------------------
 
@@ -42,6 +42,9 @@ class EcgSamplesDocLabels(models.Model):
     sample_id = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='doc_labels')
     label_id = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='samples')
 
+    class Meta:
+        unique_together = ('sample_id',)
+
     def __str__(self):
         return f"Sample {self.sample_id} - Label {self.label_id}"
 
@@ -53,6 +56,39 @@ class EcgSamplesSnomed(models.Model):
     def __str__(self):
         return f"Sample {self.sample_id} - Label {self.label_id}"
     
+
+
+class EcgSampleValidation(models.Model):
+    """Tracks pending validations of ECG samples."""
+    sample = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='validations')
+    have_been_validated = models.BooleanField(default=False)
+    prev_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='prev_tag', blank=True, null=True)
+    new_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='new_tag', blank=True, null=True)
+
+    class Meta:
+        unique_together = ('sample',)
+        ordering = ['sample']
+
+    def __str__(self):
+        return f"Validation for Sample {self.sample.sample_id}"
+
+
+class ValidationHistory(models.Model):
+    """Tracks the history of validations."""
+    validation = models.ForeignKey(EcgSampleValidation, on_delete=models.CASCADE, related_name='history')
+    validated_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='validation_history')
+    sample = models.ForeignKey(EcgSamples, on_delete=models.CASCADE, related_name='validation_history')
+    prev_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='history_prev_tag')
+    new_tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='history_new_tag')
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Validation history for Sample {self.sample.sample_id} by {self.validated_by.username}"
+
 
 # ---------------------------------------- [User Models] ----------------------------------------
 # Django's built-in User model provides login/logout functionality and user authentication. 

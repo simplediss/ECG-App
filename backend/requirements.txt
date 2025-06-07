@@ -2,6 +2,7 @@ Django
 psycopg2-binary
 djangorestframework
 django-cors-headers
+django-simple-history
 tqdm
 Pillow
 gunicorn

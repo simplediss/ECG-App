@@ -1,6 +1,6 @@
 import re
 from rest_framework import serializers
-from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed
+from .models import EcgSamples, EcgDocLabels, EcgSnomed, EcgSamplesDocLabels, EcgSamplesSnomed, EcgSampleValidation, ValidationHistory
 from .models import Profile, Quiz, Question, Choice, QuizAttempt, QuestionAttempt, Group, GroupMembership
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -340,4 +340,47 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         }
     )
     token = serializers.CharField(write_only=True)
+
+
+class ValidationHistorySerializer(serializers.ModelSerializer):
+    validated_by = UserSerializer(read_only=True)
+    prev_tag = EcgDocLabelsSerializer(read_only=True)
+    new_tag = EcgDocLabelsSerializer(read_only=True)
+
+    class Meta:
+        model = ValidationHistory
+        fields = ['id', 'validated_by', 'prev_tag', 'new_tag', 'comment', 'created_at']
+        read_only_fields = ['validated_by', 'created_at']
+
+
+class EcgSampleValidationSerializer(serializers.ModelSerializer):
+    sample = serializers.PrimaryKeyRelatedField(queryset=EcgSamples.objects.all())
+    sample_path = serializers.CharField(source='sample.sample_path', read_only=True)
+    prev_tag = EcgDocLabelsSerializer(read_only=True)
+    new_tag = EcgDocLabelsSerializer(read_only=True)
+    history = ValidationHistorySerializer(many=True, read_only=True)
+
+    prev_tag_id = serializers.PrimaryKeyRelatedField(
+        queryset=EcgDocLabels.objects.all(),
+        source='prev_tag',
+        required=False,
+        allow_null=True,
+        write_only=True
+    )
+
+    new_tag_id = serializers.PrimaryKeyRelatedField(
+        queryset=EcgDocLabels.objects.all(),
+        source='new_tag',
+        required=False,
+        allow_null=True,
+        write_only=True
+    )
+
+    class Meta:
+        model = EcgSampleValidation
+        fields = [
+            'id', 'sample', 'sample_path', 'have_been_validated',
+            'prev_tag', 'new_tag', 'prev_tag_id', 'new_tag_id', 'history'
+        ]
+        read_only_fields = ['have_been_validated', 'history']
 

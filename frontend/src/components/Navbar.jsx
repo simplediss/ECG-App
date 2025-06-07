@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/components/Navbar.css';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   const handleLogout = async () => {
     try {
@@ -94,13 +96,36 @@ const Navbar = () => {
             </li>
             
             {user?.profile?.role === 'student' && (
+              <>
+                <li className="nav-item">
+                  <Link 
+                    to="/quiz" 
+                    className={`nav-link ${isActive('/quiz')}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Take Quiz
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link 
+                    to="/ecg-road" 
+                    className={`nav-link ${isActive('/ecg-road')}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    ECG Road
+                  </Link>
+                </li>
+              </>
+            )}
+            
+            {(user?.profile?.role === 'teacher' || user?.is_staff) && (
               <li className="nav-item">
                 <Link 
-                  to="/quiz" 
-                  className={`nav-link ${isActive('/quiz')}`}
+                  to="/validation" 
+                  className={`nav-link ${isActive('/validation')}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Take Quiz
+                  Validation
                 </Link>
               </li>
             )}
@@ -138,7 +163,7 @@ const Navbar = () => {
             </li>
           </ul>
           
-          <div className="navbar-right">
+          <div className="navbar-right" style={isMobile ? { flexDirection: 'column', alignItems: 'stretch', gap: 8 } : {}}>
             <div className="theme-switch-wrapper">
               <label className="theme-switch" htmlFor="theme-checkbox">
                 <input 
@@ -164,33 +189,42 @@ const Navbar = () => {
             </div>
             
             {user && (
-              <div className="user-menu" ref={dropdownRef}>
-                <button 
-                  className="user-toggle" 
-                  onClick={() => setShowDropdown(!showDropdown)}
-                >
-                  <span className="avatar">
-                    {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
-                  </span>
-                  <span className="username">{user.username}</span>
-                  <span className="dropdown-icon">▼</span>
-                </button>
-                
-                {showDropdown && (
-                  <div className="dropdown-menu">
-                    <button onClick={() => handleNavigation('/profile')} className="dropdown-item">
-                      <span className="dropdown-icon">👤</span> Profile
-                    </button>
-                    <button onClick={() => handleNavigation('/settings')} className="dropdown-item">
-                      <span className="dropdown-icon">⚙️</span> Settings
-                    </button>
-                    <div className="dropdown-divider"></div>
-                    <button onClick={handleLogout} className="dropdown-item text-danger">
-                      <span className="dropdown-icon">🚪</span> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+              isMobile ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                  <button onClick={() => handleNavigation('/profile')} className="dropdown-item">
+                    <span className="dropdown-icon">⚙️</span> Profile
+                  </button>
+                  <button onClick={handleLogout} className="dropdown-item text-danger">
+                    <span className="dropdown-icon">🚪</span> Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="user-menu" ref={dropdownRef}>
+                  <button 
+                    className="user-toggle" 
+                    onClick={() => setShowDropdown(!showDropdown)}
+                  >
+                    <span className="avatar">
+                      {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
+                    </span>
+                    <span className="username">{user.username}</span>
+                    <span className="dropdown-icon">▼</span>
+                  </button>
+                  
+                  {showDropdown && (
+                    <div className="dropdown-menu">
+                      <button onClick={() => handleNavigation('/profile')} className="dropdown-item">
+                        <span className="dropdown-icon">⚙️</span> Profile
+                      </button>
+                      
+                      <div className="dropdown-divider"></div>
+                      <button onClick={handleLogout} className="dropdown-item text-danger">
+                        <span className="dropdown-icon">🚪</span> Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
             )}
           </div>
         </div>
