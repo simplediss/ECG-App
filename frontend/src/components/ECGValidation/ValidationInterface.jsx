@@ -166,6 +166,9 @@ const ValidationInterface = () => {
   const getEcgImageUrl = (sample) => {
     if (!sample?.path) return null;
     // Ensure the path ends with .png
+    console.log('Sample path:', sample.path);
+    console.log('Sample path ends with .png:', sample.path.endsWith('.png'));
+    console.log('Final URL:', getImageUrl(sample.path.endsWith('.png') ? sample.path : sample.path + '.png'));
     return getImageUrl(sample.path.endsWith('.png') ? sample.path : sample.path + '.png');
   };
 
@@ -242,6 +245,7 @@ const ValidationInterface = () => {
               <Box
                 component="img"
                 src={getEcgImageUrl(currentSample)}
+                
                 alt={`ECG Sample ${currentSample.id}`}
                 sx={{
                   width: '100%',

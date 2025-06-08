@@ -398,6 +398,7 @@ const Quiz = () => {
       {(() => {
         const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
         const imageUrl = getEcgImageUrl(currentQuestion);
+        console.log('ECG image URL:', getEcgImageUrl(currentQuestion));
         return imageUrl ? (
           <div className="ecg-image-container">
             <img 
