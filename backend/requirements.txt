@@ -6,3 +6,5 @@ django-simple-history
 tqdm
 Pillow
 gunicorn
+pandas
+scikit-learn

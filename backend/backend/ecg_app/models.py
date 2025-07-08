@@ -15,6 +15,7 @@ class EcgSamples(models.Model):
         null=True
     )
     age = models.PositiveIntegerField(blank=True, null=True)
+    difficulty_level = models.IntegerField(null=True, blank=True)
 
 
     def __str__(self):
