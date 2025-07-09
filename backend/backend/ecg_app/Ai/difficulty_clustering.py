@@ -47,13 +47,26 @@ def recalculate_difficulty(n_clusters=5, min_attempts=5):
     # Apply KMeans clustering
     model = KMeans(n_clusters=n_clusters, random_state=42)
     clusters = model.fit_predict(features)
+    
+    # Rank clusters by difficulty (error_rate + avg_time)
+    features['cluster'] = clusters
+    features['sample_id'] = ids
+    cluster_difficulty = (
+        features.groupby('cluster')[['error_rate', 'avg_time']]
+        .mean()
+        .assign(difficulty_score=lambda df: df['error_rate'] + df['avg_time'])
+        .sort_values('difficulty_score')
+    )
 
+    cluster_to_difficulty_level = {
+        cluster_id: rank for rank, cluster_id in enumerate(cluster_difficulty.index)
+    }
     # Save difficulty level to the database
     updated = 0
     for i, sample_id in enumerate(ids):
         try:
             sample = EcgSamples.objects.get(sample_id=sample_id)  # use sample_id (custom PK)
-            sample.difficulty_level = int(clusters[i])
+            sample.difficulty_level = cluster_to_difficulty_level[clusters[i]]
             sample.save()
             updated += 1
         except EcgSamples.DoesNotExist:
