@@ -142,6 +142,7 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
         for answer in answers:
             question_id = answer.get('question')
             choice_id = answer.get('selected_choice')
+            response_time = answer.get('response_time')
 
             try:
                 question = Question.objects.get(id=question_id, quiz=quiz)
@@ -155,7 +156,8 @@ class QuizAttemptViewSet(viewsets.ModelViewSet):
                     quiz_attempt=quiz_attempt,
                     question=question,
                     selected_choice=choice,
-                    is_correct=is_correct
+                    is_correct=is_correct,
+                    response_time=response_time
                 )
             except (Question.DoesNotExist, Choice.DoesNotExist):
                 continue

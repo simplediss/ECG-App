@@ -178,6 +178,7 @@ class QuestionAttempt(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, blank=True, null=True)
     is_correct = models.BooleanField(default=False)
+    response_time = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"Attempt for Question {self.question.id} in {self.quiz_attempt}"
