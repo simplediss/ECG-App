@@ -10,6 +10,8 @@ const Quiz = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+  const [responseTimes, setResponseTimes] = useState({});
   const [answers, setAnswers] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -105,6 +107,7 @@ const Quiz = () => {
       setIsAnswerChecked(false);
       setCorrectChoiceId(null);
       setStartTime(Date.now());
+      setQuestionStartTime(Date.now());
       setDuration(null);
       if (quiz.questions[0]) {
         const sortedChoices = [...quiz.questions[0].choices].sort((a, b) => a.text.localeCompare(b.text));
@@ -148,6 +151,7 @@ const Quiz = () => {
     setIsAnswerChecked(false);
     setCorrectChoiceId(null);
     setStartTime(Date.now());
+    setQuestionStartTime(Date.now());
     setDuration(null);
     if (quiz.questions[0]) {
       const sortedChoices = [...quiz.questions[0].choices].sort((a, b) => a.text.localeCompare(b.text));
@@ -170,8 +174,13 @@ const Quiz = () => {
     try {
       const currentQuestion = selectedQuiz.questions[currentQuestionIndex];
       const result = await checkAnswer(currentQuestion.id, currentAnswer);
+      const responseTimeSeconds = Math.floor((Date.now() - questionStartTime) / 1000);
       setIsAnswerChecked(true);
       setCorrectChoiceId(result.correct_choice_id);
+      setResponseTimes(prev => ({
+      ...prev,
+      [currentQuestion.id]: responseTimeSeconds
+    }));
     } catch (err) {
       setError('Failed to check answer. Please try again.');
     }
@@ -182,6 +191,7 @@ const Quiz = () => {
     
     if (currentQuestionIndex < selectedQuiz.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+      setQuestionStartTime(Date.now());
       setCurrentAnswer(null);
       setIsAnswerChecked(false);
       setCorrectChoiceId(null);
@@ -202,7 +212,8 @@ const Quiz = () => {
         quiz: selectedQuiz.id,
         answers: Object.entries(finalAnswers).map(([questionId, choiceId]) => ({
           question: parseInt(questionId),
-          selected_choice: choiceId
+          selected_choice: choiceId,
+          response_time: responseTimes[questionId] || null
         }))
       });
       

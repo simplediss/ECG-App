@@ -15,6 +15,7 @@ class EcgSamples(models.Model):
         null=True
     )
     age = models.PositiveIntegerField(blank=True, null=True)
+    difficulty_level = models.IntegerField(null=True, blank=True)
 
 
     def __str__(self):
@@ -108,6 +109,7 @@ class Profile(models.Model):
         choices=[('student', 'Student'), ('teacher', 'Teacher')],
         default='student'
     )
+    student_level = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -177,6 +179,7 @@ class QuestionAttempt(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, blank=True, null=True)
     is_correct = models.BooleanField(default=False)
+    response_time = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"Attempt for Question {self.question.id} in {self.quiz_attempt}"
@@ -215,3 +218,14 @@ class GroupMembership(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.group.name} ({self.status})"
+
+class StudentTagMastery(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tag_masteries')
+    tag = models.ForeignKey(EcgDocLabels, on_delete=models.CASCADE, related_name='student_masteries')
+    mastery_score = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'tag')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.tag.label_desc} - Score: {self.mastery_score}"
